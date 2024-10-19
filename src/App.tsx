@@ -10,7 +10,7 @@ const App: React.FC = () => {
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
-      <Container>
+      <Container maxWidth="md">
         <EPDConfigTool />
       </Container>
     </ThemeProvider>
