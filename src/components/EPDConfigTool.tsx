@@ -68,7 +68,7 @@ const EPDConfigTool: React.FC = () => {
   };
 
   return (
-    <Box sx={{ mt: 4 }}>
+    <Box sx={{ width: '100%', maxWidth: 800, mx: 'auto' }}>
       <Typography variant="h4" gutterBottom>EPD Configuration Setup</Typography>
       <Paper elevation={3} sx={{ p: 3, mb: 3 }}>
         <Typography variant="h6" gutterBottom>Basic Settings</Typography>

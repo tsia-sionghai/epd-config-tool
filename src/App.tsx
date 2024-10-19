@@ -1,16 +1,13 @@
 import React from 'react';
 import { Container, CssBaseline, ThemeProvider, createTheme } from '@mui/material';
 import EPDConfigTool from './components/EPDConfigTool';
-
-const theme = createTheme({
-  // 自定義主題設置
-});
+import theme from './theme';
 
 const App: React.FC = () => {
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
-      <Container maxWidth="md">
+      <Container maxWidth="md" sx={{ mt: 4 }}>
         <EPDConfigTool />
       </Container>
     </ThemeProvider>
