@@ -6,24 +6,14 @@ const theme = createTheme({
       main: '#3B82F6',
       light: '#60A5FA',
     },
-    secondary: {
-      main: '#10B981',
-    },
-    error: {
-      main: '#EF4444',
-    },
-    warning: {
-      main: '#F59E0B',
-    },
     background: {
-      default: '#FFFFFF',
-      paper: '#F3F4F6',
+      default: '#F3F4F6',
+      paper: '#FFFFFF',
     },
     text: {
       primary: '#1F2937',
       secondary: '#4B5563',
     },
-    divider: '#E5E7EB',
   },
   typography: {
     fontFamily: '"Roboto", "Helvetica", "Arial", sans-serif',
@@ -35,19 +25,32 @@ const theme = createTheme({
       fontWeight: 600,
       color: '#1F2937',
     },
-    body1: {
-      color: '#4B5563',
-    },
-    body2: {
-      color: '#9CA3AF',
-    },
   },
   components: {
     MuiButton: {
       styleOverrides: {
         root: {
           textTransform: 'none',
-          borderRadius: 8,
+          borderRadius: 12,
+          padding: '8px 16px',
+          boxShadow: 'none',
+        },
+        contained: {
+          backgroundColor: '#EBF5FF',
+          color: '#2563EB',
+          '&:hover': {
+            backgroundColor: '#DBEAFE',
+            boxShadow: 'none',
+          },
+        },
+      },
+    },
+    MuiPaper: {
+      styleOverrides: {
+        root: {
+          backgroundColor: '#FFFFFF',
+          borderRadius: 16,
+          boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06)',
         },
       },
     },
@@ -55,6 +58,8 @@ const theme = createTheme({
       styleOverrides: {
         root: {
           '& .MuiOutlinedInput-root': {
+            borderRadius: 12,
+            backgroundColor: '#FFFFFF',
             '& fieldset': {
               borderColor: '#D1D5DB',
             },
@@ -68,11 +73,18 @@ const theme = createTheme({
         },
       },
     },
-    MuiCard: {
+    MuiSelect: {
       styleOverrides: {
         root: {
           borderRadius: 12,
-          boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
+          backgroundColor: '#FFFFFF',
+        },
+      },
+    },
+    MuiChip: {
+      styleOverrides: {
+        root: {
+          borderRadius: 8,
         },
       },
     },
