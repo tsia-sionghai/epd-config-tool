@@ -12,6 +12,7 @@ import {
   Paper
 } from '@mui/material';
 import { uploadImage, generateConfig } from '../services/api';
+import ModeSelector from './ModeSelector';
 
 const EPDConfigTool: React.FC = () => {
   const [config, setConfig] = useState({
@@ -84,16 +85,7 @@ const EPDConfigTool: React.FC = () => {
           </Grid>
           <Grid item xs={12} sm={6}>
             <FormControl fullWidth>
-              <InputLabel>Mode</InputLabel>
-              <Select
-                name="mode"
-                value={config.mode}
-                onChange={handleConfigChange}
-                label="Mode"
-              >
-                <MenuItem value="Auto (Offline)">Auto (Offline)</MenuItem>
-                <MenuItem value="CMS (Online)">CMS (Online)</MenuItem>
-              </Select>
+              <ModeSelector />
             </FormControl>
           </Grid>
           <Grid item xs={12} sm={6}>
