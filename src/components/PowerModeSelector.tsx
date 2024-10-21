@@ -1,28 +1,51 @@
 import React from 'react';
-import { ToggleButtonGroup, ToggleButton } from '@mui/material';
+import Grid from '@mui/material/Grid';
+import SelectableButton from './SelectableButton';
+import PowerOffIcon from '@mui/icons-material/PowerOff';
+import BedtimeIcon from '@mui/icons-material/Bedtime';
+import AutoFixNormalIcon from '@mui/icons-material/AutoFixNormal';
 
-interface PowerModeSelectorProps {
-  value: string;
-  onChange: (value: string) => void;
+interface ModeSelectorProps {
+  value: 'normal' | 'hibernation' | 'off';
+  onChange: (value: 'normal' | 'hibernation' | 'off') => void;
 }
 
-const PowerModeSelector: React.FC<PowerModeSelectorProps> = ({ value, onChange }) => (
-  <ToggleButtonGroup
-    value={value}
-    exclusive
-    onChange={(_, newValue) => onChange(newValue)}
-    aria-label="power mode"
-  >
-    <ToggleButton value="off" aria-label="off mode">
-      Off Mode
-    </ToggleButton>
-    <ToggleButton value="sleep" aria-label="sleep mode">
-      Sleep Mode
-    </ToggleButton>
-    <ToggleButton value="normal" aria-label="normal mode">
-      Normal Mode
-    </ToggleButton>
-  </ToggleButtonGroup>
-);
+const PowerModeSelector: React.FC<ModeSelectorProps> = ({ value, onChange }) => {
+  return (
+    <Grid container spacing={2}>
+      {[
+        {
+          mode: 'off',
+          icon: <PowerOffIcon />,
+          title: 'Off Mode',
+          description: '畫面刷新後，機台將會關機。'
+        },
+        {
+          mode: 'hibernation',
+          icon: <BedtimeIcon />,
+          title: 'Sleep Mode',
+          description: '畫面刷新後，機台將會進入睡眠模式。'
+        },
+        {
+          mode: 'normal',
+          icon: <AutoFixNormalIcon />,
+          title: 'Normal Mode',
+          description: '畫面刷新後，機台將會持續醒著。'
+        },
+      ].map((item) => (
+        <Grid item xs={4} key={item.mode}>
+          <SelectableButton
+            selected={value === item.mode}
+            onClick={() => onChange(item.mode as 'normal' | 'hibernation' | 'off')}
+            icon={item.icon}
+            title={item.title}
+            description={item.description}
+            sx={{ height: '100%' }}  // 確保每個按鈕填滿 Grid item 的高度
+          />
+        </Grid>
+      ))}
+    </Grid>
+  );
+};
 
 export default PowerModeSelector;
