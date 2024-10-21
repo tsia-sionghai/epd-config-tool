@@ -1,26 +1,41 @@
 import React, { useState } from 'react';
-import { Grid, Typography, TextField, Select, MenuItem, Button, Paper, Box } from '@mui/material';
-import SettingsIcon from '@mui/icons-material/Settings';
+import { Grid, Typography, TextField, Select, MenuItem, Button, Paper, Box, styled, Container } from '@mui/material';
+import settingsIcon from '../assets/img_set.png';
 import ModeSelector from './ModeSelector';
 import PowerModeSelector from './PowerModeSelector';
 import RotateSelector from './RotateSelector';
 import ImageUploader from './ImageUploader';
+import IntervalSelector from './IntervalSelector';
+import alertIcon from '../assets/ic_alert.png';
+
+const AlertIcon = styled('img')({
+  width: 18,
+  height: 18,
+  marginRight: 4,
+});
+
+const HintText = styled(Typography)({
+  display: 'flex',
+  alignItems: 'center',
+  fontSize: 14,
+  color: '#666',
+});
 
 const EPDConfigurationTool: React.FC = () => {
   const [customer, setCustomer] = useState('');
   const [mode, setMode] = useState('auto');
-  const [powerMode, setPowerMode] = useState('normal');
+  const [powerMode, setPowerMode] = useState('hibernation');
   const [timeZone, setTimeZone] = useState('GMT+08:00');
-  const [size, setSize] = useState('13.3" (1200x1600)');
+  const [size, setSize] = useState('13.3');
   const [rotate, setRotate] = useState(0);
   const [interval, setInterval] = useState(180);
   const [images, setImages] = useState<string[]>([]);
 
   return (
-    <Box>
-      <Box display="flex" alignItems="center" mb={2}>
-        <SettingsIcon sx={{ mr: 1, fontSize: 30 }} />
-        <Typography variant="h4" component="h1">
+    <Container>
+      <Box display="flex" justifyContent="center" alignItems="center" mb={2}>
+        <img src={settingsIcon} alt="Settings" style={{ marginRight: '8px', width: '80px', height: '80px' }} />
+        <Typography variant="h6" component="h6" sx={{ fontWeight: 'normal' }}>
           EPD Configuration Tool
         </Typography>
       </Box>
@@ -50,7 +65,7 @@ const EPDConfigurationTool: React.FC = () => {
               <Typography align="right">Mode</Typography>
             </Grid>
             <Grid item xs={9}>
-              <ModeSelector value={mode} onChange={setMode} />
+              <ModeSelector value={"auto"} onChange={setMode} />
             </Grid>
           </Grid>
 
@@ -59,7 +74,7 @@ const EPDConfigurationTool: React.FC = () => {
               <Typography align="right">Power Mode</Typography>
             </Grid>
             <Grid item xs={9}>
-              <PowerModeSelector value={powerMode} onChange={setPowerMode} />
+              <PowerModeSelector value={"hibernation"} onChange={setPowerMode} />
             </Grid>
           </Grid>
 
@@ -73,7 +88,35 @@ const EPDConfigurationTool: React.FC = () => {
                 value={timeZone}
                 onChange={(e) => setTimeZone(e.target.value as string)}
               >
-                <MenuItem value="GMT+08:00">GMT+08:00 Taipei</MenuItem>
+                <MenuItem value="GMT-11:00">(GMT-11:00) Midway Island</MenuItem>
+                <MenuItem value="GMT-10:00">(GMT-10:00) Hawaii</MenuItem>
+                <MenuItem value="GMT-09:00">(GMT-09:00) Alaska</MenuItem>
+                <MenuItem value="GMT-08:00">(GMT-08:00) Pacific Time (US &amp; Canada)</MenuItem>
+                <MenuItem value="GMT-07:00">(GMT-07:00) Mountain Time (US &amp; Canada)</MenuItem>
+                <MenuItem value="GMT-06:00">(GMT-06:00) Central Time (US &amp; Canada)</MenuItem>
+                <MenuItem value="GMT-05:00">(GMT-05:00) Eastern Time (US &amp; Canada)</MenuItem>
+                <MenuItem value="GMT-04:00">(GMT-04:00) Atlantic Time (Canada)</MenuItem>
+                <MenuItem value="GMT-03:30">(GMT-03:30) Newfoundland</MenuItem>
+                <MenuItem value="GMT-03:00">(GMT-03:00) Buenos Aires</MenuItem>
+                <MenuItem value="GMT-02:00">(GMT-02:00) Mid-Atlantic</MenuItem>
+                <MenuItem value="GMT-01:00">(GMT-01:00) Azores</MenuItem>
+                <MenuItem value="GMT+00:00">(GMT+00:00) London</MenuItem>
+                <MenuItem value="GMT+01:00">(GMT+01:00) Paris</MenuItem>
+                <MenuItem value="GMT+02:00">(GMT+02:00) Athens</MenuItem>
+                <MenuItem value="GMT+03:00">(GMT+03:00) Moscow</MenuItem>
+                <MenuItem value="GMT+03:30">(GMT+03:30) Tehran</MenuItem>
+                <MenuItem value="GMT+04:00">(GMT+04:00) Dubai</MenuItem>
+                <MenuItem value="GMT+04:30">(GMT+04:30) Kabul</MenuItem>
+                <MenuItem value="GMT+05:00">(GMT+05:00) Islamabad</MenuItem>
+                <MenuItem value="GMT+05:30">(GMT+05:30) Kolkata</MenuItem>
+                <MenuItem value="GMT+05:45">(GMT+05:45) Kathmandu</MenuItem>
+                <MenuItem value="GMT+06:00">(GMT+06:00) Dhaka</MenuItem>
+                <MenuItem value="GMT+06:30">(GMT+06:30) Yangon (Rangoon)</MenuItem>
+                <MenuItem value="GMT+07:00">(GMT+07:00) Bangkok</MenuItem>
+                <MenuItem value="GMT+08:00" selected>(GMT+08:00) Taipei</MenuItem>
+                <MenuItem value="GMT+09:00">(GMT+09:00) Tokyo</MenuItem>
+                <MenuItem value="GMT+10:00">(GMT+10:00) Sydney</MenuItem>
+                <MenuItem value="GMT+12:00">(GMT+12:00) Auckland</MenuItem>
                 {/* Add more time zones here */}
               </Select>
             </Grid>
@@ -97,10 +140,10 @@ const EPDConfigurationTool: React.FC = () => {
                 value={size}
                 onChange={(e) => setSize(e.target.value as string)}
               >
-                <MenuItem value="13.3 (1200x1600)">13.3" (1200x1600)</MenuItem>
-                <MenuItem value="25.3 (1800x3200)">25.3" (1800x3200)</MenuItem>
-                <MenuItem value="28.3 (2160x3060)">28.3" (2160x3060)</MenuItem>
-                <MenuItem value="31.5 (1440x2560)">31.5" (1440x2560)</MenuItem>
+                <MenuItem value="13.3" selected>13.3" (1200x1600)</MenuItem>
+                <MenuItem value="25.3">25.3" (1800x3200)</MenuItem>
+                <MenuItem value="28.3">28.3" (2160x3060)</MenuItem>
+                <MenuItem value="31.5">31.5" (1440x2560)</MenuItem>
               </Select>
             </Grid>
           </Grid>
@@ -118,35 +161,37 @@ const EPDConfigurationTool: React.FC = () => {
             <Grid item xs={3}>
               <Typography align="right">Interval (seconds)</Typography>
             </Grid>
-            <Grid item xs={9}>
-              <TextField
-                type="number"
+            <Grid item container alignItems="center" xs={9}>
+              <IntervalSelector
                 value={interval}
-                onChange={(e) => setInterval(Number(e.target.value))}
-                InputProps={{
-                  endAdornment: (
-                    <>
-                      <Button onClick={() => setInterval(prev => prev - 1)}>-</Button>
-                      <Button onClick={() => setInterval(prev => prev + 1)}>+</Button>
-                    </>
-                  ),
-                }}
+                onChange={setInterval}
+                min={180}
+                max={3600}
               />
+              <HintText sx={{ ml: 1 }}>
+                <AlertIcon src={alertIcon} alt="Alert" />
+                秒數需設定180秒以上
+              </HintText>
             </Grid>
           </Grid>
 
-          <Grid item xs={12}>
-            <ImageUploader images={images} setImages={setImages} />
+          <Grid item container alignItems="flex-start" spacing={2}>
+            <Grid item xs={3}>
+              <Typography align="right">Select Image</Typography>
+            </Grid>
+            <Grid item xs={9}>
+              <ImageUploader images={images} setImages={setImages} />
+            </Grid>
           </Grid>
         </Grid>
       </Paper>
 
       <Box display="flex" alignItems="center" mb={2}>
-        <Button variant="contained" color="primary" fullWidth>
-          產生檔案
+        <Button variant="contained" fullWidth style={{ color: '#FFFFFF', boxShadow: '0 1px 2px rgb(0 0 0 / 30%)', borderRadius: '16px', backgroundColor: '#F9A965', height: '32px'}}>
+          產生設定檔案
         </Button>
       </Box>
-    </Box>
+    </Container>
   );
 };
 
