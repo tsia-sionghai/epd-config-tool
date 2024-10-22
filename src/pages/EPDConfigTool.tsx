@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
-import { Grid, Typography, TextField, Select, MenuItem, Button, Paper, Box, styled, Container } from '@mui/material';
+import { Grid, Typography, TextField, Select, MenuItem, Button, Paper, Box, styled } from '@mui/material';
 import settingsIcon from '../assets/img_set.png';
-import ModeSelector from './ModeSelector';
-import PowerModeSelector from './PowerModeSelector';
-import RotateSelector from './RotateSelector';
-import ImageUploader from './ImageUploader';
-import IntervalSelector from './IntervalSelector';
+import ModeSelector from '../components/ModeSelector';
+import PowerModeSelector from '../components/PowerModeSelector';
+import RotateSelector from '../components/RotateSelector';
+import ImageUploader from '../components/ImageUploader';
+import IntervalSelector from '../components/IntervalSelector';
 import alertIcon from '../assets/ic_alert.png';
 
 const AlertIcon = styled('img')({
@@ -47,10 +47,10 @@ const EPDConfigurationTool: React.FC = () => {
           </Grid>
           
           <Grid item container alignItems="center" spacing={2}>
-            <Grid item xs={3}>
+            <Grid item xs={2}>
               <Typography align="right">Customer</Typography>
             </Grid>
-            <Grid item xs={9}>
+            <Grid item xs={10}>
               <TextField 
                 fullWidth 
                 value={customer} 
@@ -61,28 +61,28 @@ const EPDConfigurationTool: React.FC = () => {
           </Grid>
 
           <Grid item container alignItems="center" spacing={2}>
-            <Grid item xs={3}>
+            <Grid item xs={2}>
               <Typography align="right">Mode</Typography>
             </Grid>
-            <Grid item xs={9}>
+            <Grid item xs={10}>
               <ModeSelector value={"auto"} onChange={setMode} />
             </Grid>
           </Grid>
 
           <Grid item container alignItems="center" spacing={2}>
-            <Grid item xs={3}>
+            <Grid item xs={2}>
               <Typography align="right">Power Mode</Typography>
             </Grid>
-            <Grid item xs={9}>
+            <Grid item xs={10}>
               <PowerModeSelector value={"hibernation"} onChange={setPowerMode} />
             </Grid>
           </Grid>
 
           <Grid item container alignItems="center" spacing={2}>
-            <Grid item xs={3}>
+            <Grid item xs={2}>
               <Typography align="right">Time Zone</Typography>
             </Grid>
-            <Grid item xs={9}>
+            <Grid item xs={10}>
               <Select
                 fullWidth
                 value={timeZone}
@@ -131,10 +131,10 @@ const EPDConfigurationTool: React.FC = () => {
           </Grid>
 
           <Grid item container alignItems="center" spacing={2}>
-            <Grid item xs={3}>
+            <Grid item xs={2}>
               <Typography align="right">Size</Typography>
             </Grid>
-            <Grid item xs={9}>
+            <Grid item xs={10}>
               <Select
                 fullWidth
                 value={size}
@@ -149,19 +149,19 @@ const EPDConfigurationTool: React.FC = () => {
           </Grid>
 
           <Grid item container alignItems="center" spacing={2}>
-            <Grid item xs={3}>
+            <Grid item xs={2}>
               <Typography align="right">Rotate</Typography>
             </Grid>
-            <Grid item xs={9}>
+            <Grid item xs={10}>
               <RotateSelector value={rotate} onChange={setRotate} />
             </Grid>
           </Grid>
 
           <Grid item container alignItems="center" spacing={2}>
-            <Grid item xs={3}>
+            <Grid item xs={2}>
               <Typography align="right">Interval (seconds)</Typography>
             </Grid>
-            <Grid item container alignItems="center" xs={9}>
+            <Grid item container alignItems="center" xs={10}>
               <IntervalSelector
                 value={interval}
                 onChange={setInterval}
@@ -176,10 +176,10 @@ const EPDConfigurationTool: React.FC = () => {
           </Grid>
 
           <Grid item container alignItems="flex-start" spacing={2}>
-            <Grid item xs={3}>
+            <Grid item xs={2}>
               <Typography align="right">Select Image</Typography>
             </Grid>
-            <Grid item xs={9}>
+            <Grid item xs={10}>
               <ImageUploader images={images} setImages={setImages} />
             </Grid>
           </Grid>
