@@ -24,12 +24,12 @@ const SelectableButton: React.FC<SelectableButtonProps> = ({
       sx={{
         cursor: 'pointer',
         borderRadius: 4,
-        bgcolor: selected ? '#F3F4F6' : '#FFFFFF',
-        border: '1px solid',
-        borderColor: selected ? '#8B5CF6' : 'transparent',
+        bgcolor: selected ? '#E5E5EC' : '#FFFFFF',
+        border: '2px solid',
+        borderColor: selected ? '#827BB5' : 'transparent',
         transition: 'all 0.3s',
         '&:hover': {
-          bgcolor: selected ? '#F3F4F6' : '#F9FAFB',
+          bgcolor: selected ? '#E5E5EC' : '#F9FAFB',
         },
         ...sx,
       }}
