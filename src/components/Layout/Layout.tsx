@@ -1,16 +1,6 @@
 import React from 'react';
-import { Link as RouterLink, Outlet } from 'react-router-dom';
-import { AppBar, Toolbar, Typography, Link, Box, Container } from '@mui/material';
-import { styled } from '@mui/material/styles';
-
-const StyledLink = styled(RouterLink)(({ theme }) => ({
-  color: theme.palette.primary.contrastText,
-  textDecoration: 'none',
-  marginRight: theme.spacing(3),
-  '&:hover': {
-    textDecoration: 'underline',
-  },
-}));
+import { Outlet } from 'react-router-dom';
+import { Typography, Box, Container } from '@mui/material';
 
 const Layout: React.FC = () => {
   return (
