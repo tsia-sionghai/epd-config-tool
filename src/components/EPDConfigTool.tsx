@@ -32,10 +32,10 @@ const EPDConfigurationTool: React.FC = () => {
   const [images, setImages] = useState<string[]>([]);
 
   return (
-    <Container>
+    <Box>
       <Box display="flex" justifyContent="center" alignItems="center" mb={2}>
         <img src={settingsIcon} alt="Settings" style={{ marginRight: '8px', width: '80px', height: '80px' }} />
-        <Typography variant="h6" component="h6" sx={{ fontWeight: 'normal' }}>
+        <Typography variant="h6" component="h6">
           EPD Configuration Tool
         </Typography>
       </Box>
@@ -191,7 +191,7 @@ const EPDConfigurationTool: React.FC = () => {
           產生設定檔案
         </Button>
       </Box>
-    </Container>
+    </Box>
   );
 };
 
