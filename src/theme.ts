@@ -187,6 +187,56 @@ const theme = createTheme({
         },
       },
     },
+    // Button 樣式
+    MuiButton: {
+      styleOverrides: {
+        root: {
+          borderRadius: '16px',
+          padding: '4px 16px',
+          height: '32px',
+          textTransform: 'none', // 防止自動大寫
+          minWidth: '100px',
+          gap: '10px',
+        },
+        // 含背景色的按鈕
+        contained: {
+          backgroundColor: colors.primaryPurple,
+          color: colors.white,
+          // 陰影設置
+          boxShadow: '0px 1px 3px 0px rgba(0, 0, 0, 0.3), 0px 2px 2px 0px rgba(0, 0, 0, 0.15)',
+          '&:hover': {
+            backgroundColor: colors.brightPurple,
+            boxShadow: '0px 1px 2px 0px rgba(0, 0, 0, 0.2), 0px 2px 0px 0px rgba(0, 0, 0, 0)',
+          },
+        },
+        // 邊框按鈕
+        outlined: {
+          borderColor: colors.darkGray,
+          color: colors.darkGray,
+          '&:hover': {
+            borderColor: colors.black,
+            backgroundColor: 'transparent',
+          },
+        },
+        // 文字按鈕
+        text: {
+          color: colors.primaryPurple,
+          '&:hover': {
+            backgroundColor: 'transparent',
+            color: colors.brightPurple,
+          },
+        },
+        // 禁用狀態
+        disabled: {
+          backgroundColor: colors.lightGray,
+          color: colors.darkGray,
+        },
+      },
+      // 默認屬性
+      defaultProps: {
+        disableElevation: true, // 禁用默認陰影
+      },
+    },
 
     // 調整 FormControl 的樣式以確保標籤位置正確
     MuiFormControl: {
