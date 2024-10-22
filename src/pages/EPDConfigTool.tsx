@@ -6,9 +6,10 @@ import PowerModeSelector from '../components/PowerModeSelector';
 import RotateSelector from '../components/RotateSelector';
 import ImageUploader from '../components/ImageUploader';
 import IntervalSelector from '../components/IntervalSelector';
+import hintIcon from '../assets/ic_hint.png';
 import alertIcon from '../assets/ic_alert.png';
 
-const AlertIcon = styled('img')({
+const HintIcon = styled('img')({
   width: 18,
   height: 18,
   marginRight: 4,
@@ -30,6 +31,7 @@ const EPDConfigurationTool: React.FC = () => {
   const [rotate, setRotate] = useState(0);
   const [interval, setInterval] = useState(180);
   const [images, setImages] = useState<string[]>([]);
+  const [sdCardPath, setSdCardPath] = useState(''); // 添加這一行
 
   return (
     <Box>
@@ -84,7 +86,6 @@ const EPDConfigurationTool: React.FC = () => {
             </Grid>
             <Grid item xs={10}>
               <Select
-                fullWidth
                 value={timeZone}
                 onChange={(e) => setTimeZone(e.target.value as string)}
               >
@@ -136,7 +137,6 @@ const EPDConfigurationTool: React.FC = () => {
             </Grid>
             <Grid item xs={10}>
               <Select
-                fullWidth
                 value={size}
                 onChange={(e) => setSize(e.target.value as string)}
               >
@@ -168,8 +168,8 @@ const EPDConfigurationTool: React.FC = () => {
                 min={180}
                 max={3600}
               />
-              <HintText sx={{ ml: 1 }}>
-                <AlertIcon src={alertIcon} alt="Alert" />
+              <HintText sx={{ ml: 2 }}>
+                <HintIcon src={hintIcon} alt="Hint" />
                 秒數需設定180秒以上
               </HintText>
             </Grid>
@@ -185,6 +185,71 @@ const EPDConfigurationTool: React.FC = () => {
           </Grid>
         </Grid>
       </Paper>
+
+      <Box sx={{ p: 1, mb: 2, backgroundColor: 'transparent' }}>
+        <Grid item xs={12}>
+          SD Card Path
+          <Box sx={{ display: 'inline-flex', alignItems: 'center', gap: 2 }}>
+            <TextField
+              variant="standard"
+              slotProps={{
+                input: {
+                  style: {
+                    padding: 0, // 移除 padding，使其更像純文字
+                  },
+                },
+              }}
+              value={"\\E"} // 示例值
+              placeholder="\\E"
+              disabled 
+              sx={{
+                ml: 4,
+                backgroundColor: 'transparent', // 設定背景色為透明
+                '& .MuiInput-underline:before': {
+                  borderBottom: 'none', // 移除未聚焦時的底線
+                },
+                '& .Mui-disabled:before': {
+                  borderBottom: 'none', // 移除聚焦時的底線
+                },
+                '& .MuiInput-underline:after': {
+                  borderBottom: 'none', // 移除聚焦時的底線
+                },
+                '& .MuiInputBase-input': {
+                  padding: 0, // 再次確認移除 padding
+                },
+                '& .css-1yrc8ca-MuiInputBase-input-MuiInput-input': {
+                  width: '20px',
+                },
+                minWidth: '20px',
+                w: '20px',
+              }}
+            />
+            <Button variant="contained" sx={{ minWidth: 'auto', textWrap: 'nowrap' }}>
+              選擇路徑
+            </Button>
+          </Box>
+        </Grid>
+        <Grid item xs={12}>
+          <Box sx={{ 
+            display: 'flex', 
+            alignItems: 'center', 
+            mt: 1,
+            // color: theme.palette.text.secondary,
+            fontSize: '14px',
+          }}>
+            <img 
+              src={alertIcon} 
+              alt="alert" 
+              style={{ 
+                width: '18px', 
+                height: '18px', 
+                marginRight: '4px' 
+              }} 
+            />
+            請確認所選擇的儲存路徑位於SD卡中
+          </Box>
+        </Grid>
+      </Box>
 
       <Box display="flex" alignItems="center" mb={2}>
         <Button variant="contained" fullWidth style={{ color: '#FFFFFF', boxShadow: '0 1px 2px rgb(0 0 0 / 30%)', borderRadius: '16px', backgroundColor: '#F9A965', height: '32px'}}>
