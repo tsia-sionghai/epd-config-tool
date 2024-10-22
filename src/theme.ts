@@ -51,8 +51,8 @@ const theme = createTheme({
       900: colors.black,
     },
     background: {
-      default: colors.white,
-      paper: colors.lightBlue60,
+      default: colors.lightBlue60,
+      paper: colors.white,
     },
     text: {
       primary: colors.black,
@@ -65,6 +65,7 @@ const theme = createTheme({
       fontSize: 20,
       lineHeight: '32px',
       fontWeight: 400,
+      color: colors.brightPurple,
     },
     subtitle1: {
       fontSize: 16,
@@ -83,6 +84,16 @@ const theme = createTheme({
     },
   },
   components: {
+    MuiPaper: {
+      defaultProps: {
+        elevation: 0, // 設置默認陰影為 0
+      },
+      styleOverrides: {
+        root: {
+          borderRadius: '10px', // 設置圓角為 10px
+        },
+      },
+    },
     // TextField 樣式
     MuiTextField: {
       styleOverrides: {
