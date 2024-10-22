@@ -206,19 +206,19 @@ const EPDConfigurationTool: React.FC = () => {
                 ml: 4,
                 backgroundColor: 'transparent', // 設定背景色為透明
                 '& .MuiInput-underline:before': {
-                  borderBottom: 'none', // 移除未聚焦時的底線
-                },
-                '& .Mui-disabled:before': {
-                  borderBottom: 'none', // 移除聚焦時的底線
+                  borderBottom: 'none',
                 },
                 '& .MuiInput-underline:after': {
-                  borderBottom: 'none', // 移除聚焦時的底線
+                  borderBottom: 'none',
+                },
+                '& .MuiInput-underline:hover:not(.Mui-disabled):before': {
+                  borderBottom: 'none',
+                },
+                '& .MuiInput-underline.Mui-disabled:before': {
+                  borderBottom: 'none',
                 },
                 '& .MuiInputBase-input': {
                   padding: 0, // 再次確認移除 padding
-                },
-                '& .MuiOutlinedInput-notchedOutline': {
-                  border: 'none',
                 },
                 minWidth: '20px',
                 width: '20px',
