@@ -217,11 +217,11 @@ const EPDConfigurationTool: React.FC = () => {
                 '& .MuiInputBase-input': {
                   padding: 0, // 再次確認移除 padding
                 },
-                '& .css-1yrc8ca-MuiInputBase-input-MuiInput-input': {
-                  width: '20px',
+                '& .MuiOutlinedInput-notchedOutline': {
+                  border: 'none',
                 },
                 minWidth: '20px',
-                w: '20px',
+                width: '20px',
               }}
             />
             <Button variant="contained" sx={{ minWidth: 'auto', textWrap: 'nowrap' }}>
