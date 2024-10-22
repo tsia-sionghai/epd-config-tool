@@ -1,17 +1,16 @@
-import React from 'react';
-import { Container, CssBaseline, ThemeProvider } from '@mui/material';
-import EPDConfigTool from './components/EPDConfigTool.tsx';
+import { RouterProvider } from 'react-router-dom';
+import { ThemeProvider } from '@mui/material/styles';
+import CssBaseline from '@mui/material/CssBaseline';
 import theme from './theme';
+import { router } from './routes';
 
-const App: React.FC = () => {
+function App() {
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
-      <Container maxWidth="lg" sx={{ mt: 4 }}>
-        <EPDConfigTool />
-      </Container>
+      <RouterProvider router={router} />
     </ThemeProvider>
   );
-};
+}
 
 export default App;
