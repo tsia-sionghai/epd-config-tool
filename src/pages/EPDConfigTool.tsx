@@ -1,14 +1,15 @@
 import React, { useState } from 'react';
-import { Grid, Typography, TextField, Select, MenuItem, Button, Paper, Box, styled } from '@mui/material';
+import { Grid, Typography, TextField, Select, MenuItem, Button, Paper, Box, styled, useTheme } from '@mui/material';
 import { useTranslation } from 'react-i18next';
 import settingsIcon from '../assets/img_set.png';
 import ModeSelector from '../components/ModeSelector';
 import PowerModeSelector from '../components/PowerModeSelector';
 import RotateSelector from '../components/RotateSelector';
-import ImageUploader from '../components/ImageUploader';
 import IntervalSelector from '../components/IntervalSelector';
+import ImageSection from '../components/ImageSection';
+import HintMessage from '../components/HintMessage';
+import CustomButton from '../components/CustomButton';
 import hintIcon from '../assets/ic_hint.png';
-import alertIcon from '../assets/ic_alert.png';
 
 const HintIcon = styled('img')({
   width: 18,
@@ -25,6 +26,8 @@ const HintText = styled(Typography)({
 
 const EPDConfigurationTool: React.FC = () => {
   const { t } = useTranslation();
+  const theme = useTheme();
+  // 基本設定
   const [customer, setCustomer] = useState('');
   const [mode, setMode] = useState('auto');
   const [powerMode, setPowerMode] = useState('hibernation');
@@ -32,8 +35,31 @@ const EPDConfigurationTool: React.FC = () => {
   const [size, setSize] = useState('13.3');
   const [rotate, setRotate] = useState(0);
   const [interval, setInterval] = useState(180);
+  // 單機操作設定
   const [images, setImages] = useState<string[]>([]);
+  // CMS 控制設定
+  const [wifi, setWiFi] = useState('wpa2Personal');
+  const [ssid, setSSID] = useState('');
+  const [password, setPassword] = useState('');
+  const [ip, setIP] = useState('');
+  const [netmask, setNetmask] = useState('');
+  const [gateway, setGateway] = useState('');
+  const [dns, setDNS] = useState('');
+  const [serverURL, setServerURL] = useState('https://api.ezread.com.tw/schedule');
+  // NAS 設定
+  const [nasURL, setNasURL] = useState('');
+  // SD 卡路徑
   const [sdCardPath, setSdCardPath] = useState(''); // 添加這一行
+
+  const handleDownloadBinary = () => {
+    // 處理按鈕點擊事件
+    console.log('下載播放檔案按鈕被點擊');
+  };
+
+  const handleGenerateConfig = () => {
+    // 處理按鈕點擊事件
+    console.log('產生設定檔案按鈕被點擊');
+  };
 
   return (
     <Box>
@@ -129,11 +155,13 @@ const EPDConfigurationTool: React.FC = () => {
         </Grid>
       </Paper>
 
-      {/* 單機操作設定 */}
-      <Paper sx={{ p: 3, mb: 2 }}>
+      {/* 單機操作設定/播放圖片設定 */}
+      <Paper sx={{ p: 3, mb: 2 }} id="auto-section">
         <Grid container spacing={3}>
           <Grid item xs={12}>
-            <Typography variant="h6">{t('common.title.operation')}</Typography>
+            <Typography variant="h6">
+              {mode === 'auto' ? t('common.title.auto') : t('common.title.nasBinary')}
+            </Typography>
           </Grid>
 
           <Grid item container alignItems="center" spacing={2}>
@@ -180,14 +208,160 @@ const EPDConfigurationTool: React.FC = () => {
             </Grid>
           </Grid>
 
-          <Grid item container alignItems="flex-start" spacing={2}>
+          <ImageSection 
+            mode={mode}
+            images={images}
+            setImages={setImages}
+            sx={{ mt: 0 }}
+          />
+        </Grid>
+      </Paper>
+
+      {/* CMS 控制設定 / NAS 設定 */}
+      <Paper sx={{ p: 3, mb: 2 }} id="cms-section">
+        <Grid container spacing={3}>
+          <Grid item xs={12}>
+            <Typography variant="h6">
+              {mode === 'cms' && t('common.title.cms')}
+              {mode === 'nas' && t('common.title.nas')}
+            </Typography>
+          </Grid>
+
+          <Grid item container alignItems="center" spacing={2}>
             <Grid item xs={2}>
-              <Typography align="right">{t('common.label.selectImage')}</Typography>
+              <Typography align="right">{t('common.label.wifiSetting')}</Typography>
             </Grid>
             <Grid item xs={10}>
-              <ImageUploader images={images} setImages={setImages} />
+              <Select
+                value={wifi}
+                onChange={(e) => setWiFi(e.target.value as string)}
+              >
+                <MenuItem value="open">Open</MenuItem>
+                <MenuItem value="wpa2Personal" selected>WPA2 personal</MenuItem>
+                <MenuItem value="staticIP">Static IP</MenuItem>
+              </Select>
             </Grid>
           </Grid>
+
+          <Grid item container alignItems="center" spacing={2}>
+            <Grid item xs={2}>
+              <Typography align="right">{t('common.label.ssid')}</Typography>
+            </Grid>
+            <Grid item xs={10}>
+              <TextField 
+                fullWidth 
+                value={ssid} 
+                onChange={(e) => setSSID(e.target.value)}
+                placeholder={t('common.placeholder.ssid')}
+              />
+            </Grid>
+          </Grid>
+
+          <Grid item container alignItems="center" spacing={2}>
+            <Grid item xs={2}>
+              <Typography align="right">{t('common.label.password')}</Typography>
+            </Grid>
+            <Grid item xs={10}>
+              <TextField 
+                fullWidth 
+                value={password} 
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder={t('common.placeholder.password')}
+              />
+            </Grid>
+          </Grid>
+
+          <Grid item container alignItems="center" spacing={2}>
+            <Grid item xs={2}>
+              <Typography align="right">{t('common.label.ip')}</Typography>
+            </Grid>
+            <Grid item xs={10}>
+              <TextField 
+                fullWidth 
+                value={ip} 
+                onChange={(e) => setIP(e.target.value)}
+                placeholder={t('common.placeholder.ip')}
+              />
+            </Grid>
+          </Grid>
+
+          <Grid item container alignItems="center" spacing={2}>
+            <Grid item xs={2}>
+              <Typography align="right">{t('common.label.netmask')}</Typography>
+            </Grid>
+            <Grid item xs={10}>
+              <TextField 
+                fullWidth 
+                value={netmask} 
+                onChange={(e) => setNetmask(e.target.value)}
+                placeholder={t('common.placeholder.netmask')}
+              />
+            </Grid>
+          </Grid>
+
+          <Grid item container alignItems="center" spacing={2}>
+            <Grid item xs={2}>
+              <Typography align="right">{t('common.label.gateway')}</Typography>
+            </Grid>
+            <Grid item xs={10}>
+              <TextField 
+                fullWidth 
+                value={gateway} 
+                onChange={(e) => setGateway(e.target.value)}
+                placeholder={t('common.placeholder.gateway')}
+              />
+            </Grid>
+          </Grid>
+
+          <Grid item container alignItems="center" spacing={2}>
+            <Grid item xs={2}>
+              <Typography align="right">{t('common.label.dns')}</Typography>
+            </Grid>
+            <Grid item xs={10}>
+              <TextField 
+                fullWidth 
+                value={dns} 
+                onChange={(e) => setDNS(e.target.value)}
+                placeholder={t('common.placeholder.dns')}
+              />
+            </Grid>
+          </Grid>
+
+          { mode === 'cms' && (
+            <>
+              <Grid item container alignItems="center" spacing={2}>
+              <Grid item xs={2}>
+                <Typography align="right">{t('common.label.serverURL')}</Typography>
+              </Grid>
+              <Grid item xs={10}>
+                <TextField 
+                  fullWidth 
+                  value={serverURL} 
+                  onChange={(e) => setServerURL(e.target.value)}
+                  placeholder={t('common.placeholder.serverURL')}
+                />
+              </Grid>
+            </Grid>
+            </>
+          )}
+
+          { mode === 'nas' && (
+            <>
+              <Grid item container alignItems="center" spacing={2}>
+              <Grid item xs={2}>
+                <Typography align="right">{t('common.label.nasURL')}</Typography>
+              </Grid>
+              <Grid item xs={10}>
+                <TextField 
+                  fullWidth 
+                  value={nasURL} 
+                  onChange={(e) => setNasURL(e.target.value)}
+                  placeholder={t('common.placeholder.nasURL')}
+                />
+              </Grid>
+            </Grid>
+            </>
+          )}
         </Grid>
       </Paper>
 
@@ -236,41 +410,20 @@ const EPDConfigurationTool: React.FC = () => {
           </Box>
         </Grid>
         <Grid item xs={12}>
-          <Box sx={{ 
-            display: 'flex', 
-            alignItems: 'center', 
-            mt: 1,
-            fontSize: '14px',
-          }}>
-            <img 
-              src={alertIcon} 
-              alt="alert" 
-              style={{ 
-                width: '18px', 
-                height: '18px', 
-                marginRight: '4px' 
-              }} 
-            />
-            {t('common.hint.sdCardPathCheck')}
-          </Box>
+          <HintMessage 
+            type="error"
+            message={t('common.hint.sdCardPathCheck')}
+            containerSx={{ mt: 1 }}
+            typographySx={{ color: theme.palette.text.primary }}
+          />
         </Grid>
       </Box>
 
-      {/* 產生設定檔案 */}
+      {/* 產生設定檔案按鈕 */}
       <Box display="flex" alignItems="center" mb={2}>
-        <Button 
-          fullWidth
-          variant="contained" 
-          style={{
-            color: '#FFFFFF', 
-            boxShadow: '0 1px 2px rgb(0 0 0 / 30%)', 
-            borderRadius: '16px', 
-            backgroundColor: '#F9A965', 
-            height: '32px'
-          }}
-        >
+        <CustomButton onClick={handleGenerateConfig}>
           {t('common.button.generateConfig')}
-        </Button>
+        </CustomButton>
       </Box>
     </Box>
   );
