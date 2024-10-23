@@ -1,0 +1,61 @@
+{
+  "common": {
+    "title": {
+      "main": "EPD Configuration Tool",
+      "basic": "Basic Settings",
+      "operation": "Operation Settings"
+    },
+    "label": {
+      "customer": "Customer",
+      "mode": "Mode",
+      "powerMode": "Power Mode",
+      "timeZone": "Time Zone",
+      "size": "Size",
+      "rotate": "Rotate",
+      "interval": "Interval (seconds)",
+      "selectImage": "Select Image",
+      "sdCardPath": "SD Card Path"
+    },
+    "button": {
+      "selectPath": "Select Path",
+      "generateConfig": "Generate Configuration"
+    },
+    "hint": {
+      "intervalMin": "Interval must be at least 180 seconds",
+      "sdCardPathCheck": "Please ensure the selected path is on the SD card"
+    },
+    "placeholder": {
+      "enterName": "Please enter name",
+      "dragOrSelect": "Drag and drop images here or",
+      "selectImage": "Select Images"
+    }
+  },
+  "mode": {
+    "auto": {
+      "title": "Local Operation (Offline Mode)",
+      "description": "Display images directly from local storage."
+    },
+    "cms": {
+      "title": "CMS Control (Online Mode)",
+      "description": "Control and update images through Content Management System (CMS)."
+    },
+    "nas": {
+      "title": "NAS (Online Mode)",
+      "description": "Update images through Network Attached Storage."
+    }
+  },
+  "powerMode": {
+    "off": {
+      "title": "Off Mode",
+      "description": "Device will power off after screen refresh."
+    },
+    "sleep": {
+      "title": "Sleep Mode",
+      "description": "Device will enter sleep mode after screen refresh."
+    },
+    "normal": {
+      "title": "Normal Mode",
+      "description": "Device will stay awake after screen refresh."
+    }
+  }
+}

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Grid, Typography, TextField, Select, MenuItem, Button, Paper, Box, styled } from '@mui/material';
+import { useTranslation } from 'react-i18next';
 import settingsIcon from '../assets/img_set.png';
 import ModeSelector from '../components/ModeSelector';
 import PowerModeSelector from '../components/PowerModeSelector';
@@ -23,6 +24,7 @@ const HintText = styled(Typography)({
 });
 
 const EPDConfigurationTool: React.FC = () => {
+  const { t } = useTranslation();
   const [customer, setCustomer] = useState('');
   const [mode, setMode] = useState('auto');
   const [powerMode, setPowerMode] = useState('hibernation');
@@ -38,33 +40,33 @@ const EPDConfigurationTool: React.FC = () => {
       <Box display="flex" justifyContent="center" alignItems="center" mb={2}>
         <img src={settingsIcon} alt="Settings" style={{ marginRight: '8px', width: '80px', height: '80px' }} />
         <Typography variant="h6" component="h6">
-          EPD Configuration Tool
+          {t('common.title.main')}
         </Typography>
       </Box>
 
       <Paper sx={{ p: 3, mb: 2 }}>
         <Grid container spacing={3}>
           <Grid item xs={12}>
-            <Typography variant="h6">基本設定</Typography>
+            <Typography variant="h6">{t('common.title.basic')}</Typography>
           </Grid>
           
           <Grid item container alignItems="center" spacing={2}>
             <Grid item xs={2}>
-              <Typography align="right">Customer</Typography>
+              <Typography align="right">{t('common.label.customer')}</Typography>
             </Grid>
             <Grid item xs={10}>
               <TextField 
                 fullWidth 
                 value={customer} 
                 onChange={(e) => setCustomer(e.target.value)}
-                placeholder="請輸入名稱"
+                placeholder={t('common.placeholder.enterName')}
               />
             </Grid>
           </Grid>
 
           <Grid item container alignItems="center" spacing={2}>
             <Grid item xs={2}>
-              <Typography align="right">Mode</Typography>
+              <Typography align="right">{t('common.label.mode')}</Typography>
             </Grid>
             <Grid item xs={10}>
               <ModeSelector value={"auto"} onChange={setMode} />
@@ -73,7 +75,7 @@ const EPDConfigurationTool: React.FC = () => {
 
           <Grid item container alignItems="center" spacing={2}>
             <Grid item xs={2}>
-              <Typography align="right">Power Mode</Typography>
+              <Typography align="right">{t('common.label.powerMode')}</Typography>
             </Grid>
             <Grid item xs={10}>
               <PowerModeSelector value={"hibernation"} onChange={setPowerMode} />
@@ -82,7 +84,7 @@ const EPDConfigurationTool: React.FC = () => {
 
           <Grid item container alignItems="center" spacing={2}>
             <Grid item xs={2}>
-              <Typography align="right">Time Zone</Typography>
+              <Typography align="right">{t('common.label.timeZone')}</Typography>
             </Grid>
             <Grid item xs={10}>
               <Select
@@ -128,12 +130,12 @@ const EPDConfigurationTool: React.FC = () => {
       <Paper sx={{ p: 3, mb: 2 }}>
         <Grid container spacing={3}>
           <Grid item xs={12}>
-            <Typography variant="h6">單機操作設定</Typography>
+            <Typography variant="h6">{t('common.title.operation')}</Typography>
           </Grid>
 
           <Grid item container alignItems="center" spacing={2}>
             <Grid item xs={2}>
-              <Typography align="right">Size</Typography>
+              <Typography align="right">{t('common.label.size')}</Typography>
             </Grid>
             <Grid item xs={10}>
               <Select
@@ -150,7 +152,7 @@ const EPDConfigurationTool: React.FC = () => {
 
           <Grid item container alignItems="center" spacing={2}>
             <Grid item xs={2}>
-              <Typography align="right">Rotate</Typography>
+              <Typography align="right">{t('common.label.rotate')}</Typography>
             </Grid>
             <Grid item xs={10}>
               <RotateSelector value={rotate} onChange={setRotate} />
@@ -159,7 +161,7 @@ const EPDConfigurationTool: React.FC = () => {
 
           <Grid item container alignItems="center" spacing={2}>
             <Grid item xs={2}>
-              <Typography align="right">Interval (seconds)</Typography>
+              <Typography align="right">{t('common.label.interval')}</Typography>
             </Grid>
             <Grid item container alignItems="center" xs={10}>
               <IntervalSelector
@@ -170,14 +172,14 @@ const EPDConfigurationTool: React.FC = () => {
               />
               <HintText sx={{ ml: 2 }}>
                 <HintIcon src={hintIcon} alt="Hint" />
-                秒數需設定180秒以上
+                {t('common.hint.intervalMin')}
               </HintText>
             </Grid>
           </Grid>
 
           <Grid item container alignItems="flex-start" spacing={2}>
             <Grid item xs={2}>
-              <Typography align="right">Select Image</Typography>
+              <Typography align="right">{t('common.label.selectImage')}</Typography>
             </Grid>
             <Grid item xs={10}>
               <ImageUploader images={images} setImages={setImages} />
@@ -188,7 +190,7 @@ const EPDConfigurationTool: React.FC = () => {
 
       <Box sx={{ p: 1, mb: 2, backgroundColor: 'transparent' }}>
         <Grid item xs={12}>
-          SD Card Path
+          {t('common.label.sdCardPath')}
           <Box sx={{ display: 'inline-flex', alignItems: 'center', gap: 2 }}>
             <TextField
               variant="standard"
@@ -225,7 +227,7 @@ const EPDConfigurationTool: React.FC = () => {
               }}
             />
             <Button variant="contained" sx={{ minWidth: 'auto', textWrap: 'nowrap' }}>
-              選擇路徑
+              {t('common.button.selectPath')}
             </Button>
           </Box>
         </Grid>
@@ -234,7 +236,6 @@ const EPDConfigurationTool: React.FC = () => {
             display: 'flex', 
             alignItems: 'center', 
             mt: 1,
-            // color: theme.palette.text.secondary,
             fontSize: '14px',
           }}>
             <img 
@@ -246,14 +247,24 @@ const EPDConfigurationTool: React.FC = () => {
                 marginRight: '4px' 
               }} 
             />
-            請確認所選擇的儲存路徑位於SD卡中
+            {t('common.hint.sdCardPathCheck')}
           </Box>
         </Grid>
       </Box>
 
       <Box display="flex" alignItems="center" mb={2}>
-        <Button variant="contained" fullWidth style={{ color: '#FFFFFF', boxShadow: '0 1px 2px rgb(0 0 0 / 30%)', borderRadius: '16px', backgroundColor: '#F9A965', height: '32px'}}>
-          產生設定檔案
+        <Button 
+          fullWidth
+          variant="contained" 
+          style={{
+            color: '#FFFFFF', 
+            boxShadow: '0 1px 2px rgb(0 0 0 / 30%)', 
+            borderRadius: '16px', 
+            backgroundColor: '#F9A965', 
+            height: '32px'
+          }}
+        >
+          {t('common.button.generateConfig')}
         </Button>
       </Box>
     </Box>

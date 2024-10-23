@@ -1,0 +1,61 @@
+{
+  "common": {
+    "title": {
+      "main": "EPD Configuration Tool",
+      "basic": "基本設定",
+      "operation": "單機操作設定"
+    },
+    "label": {
+      "customer": "Customer",
+      "mode": "Mode",
+      "powerMode": "Power Mode",
+      "timeZone": "Time Zone",
+      "size": "Size",
+      "rotate": "Rotate",
+      "interval": "Interval (seconds)",
+      "selectImage": "Select Image",
+      "sdCardPath": "SD Card Path"
+    },
+    "button": {
+      "selectPath": "選擇路徑",
+      "generateConfig": "產生設定檔案"
+    },
+    "hint": {
+      "intervalMin": "秒數需設定180秒以上",
+      "sdCardPathCheck": "請確認所選擇的儲存路徑位於SD卡中"
+    },
+    "placeholder": {
+      "enterName": "請輸入名稱",
+      "dragOrSelect": "請將圖片拖曳至此 或",
+      "selectImage": "選擇圖片"
+    }
+  },
+  "mode": {
+    "auto": {
+      "title": "單機操作 (離線模式)",
+      "description": "直接於本機端進行圖片輪播。"
+    },
+    "cms": {
+      "title": "CMS控制 (連線模式)",
+      "description": "透過內容控制系統(CMS)來進行控制及換圖。"
+    },
+    "nas": {
+      "title": "NAS (連線模式)",
+      "description": "透過NAS進行換圖。"
+    }
+  },
+  "powerMode": {
+    "off": {
+      "title": "Off Mode",
+      "description": "畫面刷新後，機台將會關機。"
+    },
+    "hibernation": {
+      "title": "Sleep Mode",
+      "description": "畫面刷新後，機台將會進入睡眠模式。"
+    },
+    "normal": {
+      "title": "Normal Mode",
+      "description": "畫面刷新後，機台將會持續醒著。"
+    }
+  }
+}

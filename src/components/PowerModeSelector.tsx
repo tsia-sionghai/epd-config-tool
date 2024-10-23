@@ -1,5 +1,6 @@
 import React from 'react';
 import Grid from '@mui/material/Grid';
+import { useTranslation } from 'react-i18next';
 import SelectableButton from './SelectableButton';
 
 // 導入自定義圖片
@@ -13,24 +14,25 @@ interface ModeSelectorProps {
 }
 
 const PowerModeSelector: React.FC<ModeSelectorProps> = ({ value, onChange }) => {
+  const { t } = useTranslation();
   const modeOptions = [
     {
       mode: 'off',
       icon: offPwerModeIcon,
-      title: 'Off Mode',
-      description: '畫面刷新後，機台將會關機。'
+      title: t('powerMode.off.title'),
+      description: t('powerMode.off.description')
     },
     {
       mode: 'hibernation',
       icon: sleepPowerModeIcon,
-      title: 'Sleep Mode',
-      description: '畫面刷新後，機台將會進入睡眠模式。'
+      title: t('powerMode.hibernation.title'),
+      description: t('powerMode.hibernation.description')
     },
     {
       mode: 'normal',
       icon: normalPowerModeIcon,
-      title: 'Normal Mode',
-      description: '畫面刷新後，機台將會持續醒著。'
+      title: t('powerMode.normal.title'),
+      description: t('powerMode.normal.description')
     }
   ];
 

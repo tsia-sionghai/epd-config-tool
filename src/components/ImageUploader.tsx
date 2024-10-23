@@ -3,6 +3,7 @@ import { useDropzone } from 'react-dropzone';
 import { Box, Button, Typography, IconButton, styled } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
+import { useTranslation } from 'react-i18next';
 
 const DropzoneArea = styled(Box)(({ theme }) => ({
   border: `2px dashed ${theme.palette.divider}`,
@@ -54,6 +55,7 @@ interface ImageUploaderProps {
 }
 
 const ImageUploader: React.FC<ImageUploaderProps> = ({ images, setImages }) => {
+  const { t } = useTranslation();
   const onDrop = useCallback((acceptedFiles: File[]) => {
     setImages(prev => [...prev, ...acceptedFiles.map(file => URL.createObjectURL(file))]);
   }, [setImages]);
@@ -81,9 +83,9 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({ images, setImages }) => {
     <Box>
       <DropzoneArea {...getRootProps()}>
         <input {...getInputProps()} />
-        <Typography>請將圖片拖曳至此 或 
+        <Typography>{t('common.placeholder.dragOrSelect')}
           <Button onClick={open} variant="contained" sx={{ ml: 1 }}>
-            選擇圖片
+            {t('common.placeholder.selectImage')}
           </Button>
         </Typography>
       </DropzoneArea>

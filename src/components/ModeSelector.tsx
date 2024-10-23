@@ -1,5 +1,6 @@
 import React from 'react';
 import Grid from '@mui/material/Grid';
+import { useTranslation } from 'react-i18next';
 import SelectableButton from './SelectableButton';
 
 // 導入自定義圖片
@@ -13,24 +14,25 @@ interface ModeSelectorProps {
 }
 
 const ModeSelector: React.FC<ModeSelectorProps> = ({ value, onChange }) => {
+  const { t } = useTranslation();
   const modeOptions = [
     {
       mode: 'auto',
       icon: autoModeIcon,
-      title: '單機操作 (離線模式)',
-      description: '直接於本機端進行圖片輪播。'
+      title: t('mode.auto.title'),
+      description: t('mode.auto.description')
     },
     {
       mode: 'cms',
       icon: cmsModeIcon,
-      title: 'CMS控制 (連線模式)',
-      description: '透過內容控制系統(CMS)來進行控制及換圖。'
+      title: t('mode.cms.title'),
+      description: t('mode.cms.description')
     },
     {
       mode: 'nas',
       icon: nasModeIcon,
-      title: 'NAS (連線模式)',
-      description: '透過NAS進行換圖。'
+      title: t('mode.nas.title'),
+      description: t('mode.nas.description')
     }
   ];
 
