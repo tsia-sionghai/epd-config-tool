@@ -3,7 +3,7 @@
     "title": {
       "main": "EPD Configuration Tool",
       "basic": "Basic Settings",
-      "operation": "Operation Settings"
+      "auto": "Operation Settings"
     },
     "label": {
       "customer": "Customer",

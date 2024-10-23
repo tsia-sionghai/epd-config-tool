@@ -3,7 +3,10 @@
     "title": {
       "main": "EPD Configuration Tool",
       "basic": "基本設定",
-      "operation": "單機操作設定"
+      "auto": "單機操作設定",
+      "cms": "CMS控制設定",
+      "nas": "NAS設定",
+      "nasBinary": "播放圖片設定"
     },
     "label": {
       "customer": "Customer",
@@ -14,18 +17,36 @@
       "rotate": "Rotate",
       "interval": "Interval (seconds)",
       "selectImage": "Select Image",
+      "wifiSetting": "WiFi Setting",
+      "ssid": "SSID",
+      "password": "WiFi Password",
+      "ip": "IP Address",
+      "netmask": "Netmask",
+      "gateway": "Gateway",
+      "dns": "DNS",
+      "serverURL": "CMS Server URL",
+      "nasURL": "NAS Download URL",
       "sdCardPath": "SD Card Path"
     },
     "button": {
       "selectPath": "選擇路徑",
-      "generateConfig": "產生設定檔案"
+      "generateConfig": "產生設定檔案",
+      "downloadBinary": "下載播放檔案"
     },
     "hint": {
       "intervalMin": "秒數需設定180秒以上",
-      "sdCardPathCheck": "請確認所選擇的儲存路徑位於SD卡中"
+      "sdCardPathCheck": "請確認所選擇的儲存路徑位於SD卡中",
+      "downloadBinaryToNAS": "請將下載的播放檔案上傳至您的NAS上。"
     },
     "placeholder": {
       "enterName": "請輸入名稱",
+      "ssid": "SSID",
+      "password": "WiFi Password",
+      "ip": "IP Address",
+      "netmask": "Netmask",
+      "gateway": "Gateway",
+      "dns": "DNS",
+      "nasURL": "NAS Download URL",
       "dragOrSelect": "請將圖片拖曳至此 或",
       "selectImage": "選擇圖片"
     }
