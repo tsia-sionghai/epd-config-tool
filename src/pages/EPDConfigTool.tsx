@@ -37,13 +37,15 @@ const EPDConfigurationTool: React.FC = () => {
 
   return (
     <Box>
+      {/* 網頁標題 */}
       <Box display="flex" justifyContent="center" alignItems="center" mb={2}>
         <img src={settingsIcon} alt="Settings" style={{ marginRight: '8px', width: '80px', height: '80px' }} />
         <Typography variant="h6" component="h6">
           {t('common.title.main')}
         </Typography>
       </Box>
-
+      
+      {/* 基本設定 */}
       <Paper sx={{ p: 3, mb: 2 }}>
         <Grid container spacing={3}>
           <Grid item xs={12}>
@@ -127,6 +129,7 @@ const EPDConfigurationTool: React.FC = () => {
         </Grid>
       </Paper>
 
+      {/* 單機操作設定 */}
       <Paper sx={{ p: 3, mb: 2 }}>
         <Grid container spacing={3}>
           <Grid item xs={12}>
@@ -188,6 +191,7 @@ const EPDConfigurationTool: React.FC = () => {
         </Grid>
       </Paper>
 
+      {/* SD 卡路徑 */}
       <Box sx={{ p: 1, mb: 2, backgroundColor: 'transparent' }}>
         <Grid item xs={12}>
           {t('common.label.sdCardPath')}
@@ -252,6 +256,7 @@ const EPDConfigurationTool: React.FC = () => {
         </Grid>
       </Box>
 
+      {/* 產生設定檔案 */}
       <Box display="flex" alignItems="center" mb={2}>
         <Button 
           fullWidth
