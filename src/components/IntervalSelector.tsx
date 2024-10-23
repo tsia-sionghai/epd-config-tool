@@ -54,7 +54,12 @@ const IntervalSelector: React.FC<IntervalSelectorProps> = ({
         value={value}
         onChange={handleInputChange}
         type="number"
-        inputProps={{ min, max }}
+        slotProps={{
+          input: {
+            min,
+            max
+          }
+        }}
         sx={{ width: 100 }}
       />
       <StyledIconButton onClick={() => onChange(Math.max(min, value - 1))} disabled={value <= min} sx={{ ml: 1 }}>
