@@ -84,215 +84,191 @@ const theme = createTheme({
     },
   },
   components: {
-    MuiPaper: {
-      defaultProps: {
-        elevation: 0, // 設置默認陰影為 0
-      },
+    // Input & TextField 共用樣式
+    MuiInputBase: {
       styleOverrides: {
         root: {
-          borderRadius: '10px', // 設置圓角為 10px
-        },
-      },
-    },
-    // TextField 樣式
-    MuiTextField: {
-      styleOverrides: {
-        root: {
-          '& .MuiOutlinedInput-root': {
-            backgroundColor: colors.white,
-            borderRadius: '20px',
-            height: '40px',
+          height: '40px',
+          borderRadius: '20px',
+          backgroundColor: colors.white,
+          '&.MuiOutlinedInput-root': {
             '& fieldset': {
-              borderColor: colors.lightGray,
+              borderColor: colors.darkGray, // #A2ABB3
+              borderRadius: '20px',
             },
             '&:hover fieldset': {
-              borderColor: colors.darkGray,
+              borderColor: colors.black,
             },
-            '&.Mui-focused': {
-              backgroundColor: colors.lightBlue60,
-              '& fieldset': {
-                borderColor: colors.brightPurple,
-              },
-            },
-            '&.Mui-error': {
-              backgroundColor: colors.red20,
-              '& fieldset': {
-                borderColor: colors.red,
-              },
-            },
-          },
-          '& .MuiOutlinedInput-input': {
-            height: '40px',
-            padding: '0 14px',
-            lineHeight: '40px',
-          },
-          '& .MuiInputLabel-outlined': {
-            transform: 'translate(14px, 8px) scale(1)',
-            '&.MuiInputLabel-shrink': {
-              transform: 'translate(14px, -9px) scale(0.75)',
-            },
-          },
-          '& .MuiOutlinedInput-notchedOutline': {
-            borderRadius: '20px',
-          },
-          '& .MuiFormHelperText-root.Mui-error': {
-            color: colors.red,
-            marginLeft: '14px',
-          },
-        },
-      },
-    },
-    // Select 樣式
-    MuiSelect: {
-      styleOverrides: {
-        root: {
-          height: '40px',
-          '& .MuiOutlinedInput-input': {
-            padding: '0 14px',
-          },
-          '& .MuiSelect-select.MuiSelect-outlined.MuiInputBase-input.MuiOutlinedInput-input': {
-            height: '40px',
-            paddingTop: 0,
-            paddingBottom: 0,
-            display: 'flex',
-            alignItems: 'center',
-          },
-          '.css-rc5iig-MuiSelect-select-MuiInputBase-input-MuiOutlinedInput-input': {
-            display: 'flex',
-            alignItems: 'center',
-            height: '40px',
-          },
-        },
-        select: {
-          height: '40px',
-          minHeight: '40px',
-          display: 'flex',
-          alignItems: 'center',
-          paddingRight: '32px',
-        },
-        icon: {
-          top: 'calc(50% - 12px)',
-          right: '8px',
-        },
-      },
-    },
-    MuiInputLabel: {
-      styleOverrides: {
-        root: {
-          '&.MuiInputLabel-outlined': {
-            transform: 'translate(14px, 8px) scale(1)',
-          },
-          '&.MuiInputLabel-shrink': {
-            transform: 'translate(14px, -9px) scale(0.75)',
-          },
-          // Select 的標籤位置調整
-          '&.MuiInputLabel-outlined.MuiInputLabel-shrink': {
-            transform: 'translate(14px, -9px) scale(0.75)',
-          },
-        },
-        outlined: {
-          transform: 'translate(14px, 8px) scale(1)',
-          '&.MuiInputLabel-shrink': {
-            transform: 'translate(14px, -9px) scale(0.75)',
-          },
-        },
-      },
-    },
-    // Button 樣式
-    MuiButton: {
-      styleOverrides: {
-        root: {
-          borderRadius: '16px',
-          padding: '4px 16px',
-          height: '32px',
-          textTransform: 'none', // 防止自動大寫
-          minWidth: '100px',
-          gap: '10px',
-        },
-        // 含背景色的按鈕
-        contained: {
-          backgroundColor: colors.primaryPurple,
-          color: colors.white,
-          // 陰影設置
-          boxShadow: '0px 1px 3px 0px rgba(0, 0, 0, 0.3), 0px 2px 2px 0px rgba(0, 0, 0, 0.15)',
-          '&:hover': {
-            backgroundColor: colors.brightPurple,
-            boxShadow: '0px 1px 2px 0px rgba(0, 0, 0, 0.2), 0px 2px 0px 0px rgba(0, 0, 0, 0)',
-          },
-        },
-        // 邊框按鈕
-        outlined: {
-          borderColor: colors.darkGray,
-          color: colors.darkGray,
-          '&:hover': {
-            borderColor: colors.black,
-            backgroundColor: 'transparent',
-          },
-        },
-        // 文字按鈕
-        text: {
-          color: colors.primaryPurple,
-          '&:hover': {
-            backgroundColor: 'transparent',
-            color: colors.brightPurple,
-          },
-        },
-        // 禁用狀態
-        disabled: {
-          backgroundColor: colors.lightGray,
-          color: colors.darkGray,
-        },
-      },
-      // 默認屬性
-      defaultProps: {
-        disableElevation: true, // 禁用默認陰影
-      },
-    },
-
-    // 調整 FormControl 的樣式以確保標籤位置正確
-    MuiFormControl: {
-      styleOverrides: {
-        root: {
-          '& .MuiInputLabel-root': {
-            transform: 'translate(14px, 8px) scale(1)',
-            '&.MuiInputLabel-shrink': {
-              transform: 'translate(14px, -9px) scale(0.75)',
-            },
-          },
-        },
-      },
-    },
-    // OutlinedInput 共用樣式
-    MuiOutlinedInput: {
-      styleOverrides: {
-        root: {
-          height: '40px',
-          backgroundColor: colors.white,
-          borderRadius: '20px',
-          '&:hover .MuiOutlinedInput-notchedOutline': {
-            borderColor: colors.darkGray,
-          },
-          '&.Mui-focused': {
-            backgroundColor: colors.lightBlue60,
-            '& .MuiOutlinedInput-notchedOutline': {
+            '&.Mui-focused fieldset': {
               borderColor: colors.brightPurple,
             },
           },
         },
         input: {
+          padding: '8px 12px',
           height: '40px',
-          padding: '0 14px',
+          boxSizing: 'border-box',
           display: 'flex',
           alignItems: 'center',
         },
-        notchedOutline: {
-          borderColor: colors.lightGray,
+      },
+    },
+    
+    // TextField 特定樣式
+    MuiTextField: {
+      defaultProps: {
+        variant: 'outlined',
+        fullWidth: true,
+      },
+      styleOverrides: {
+        root: {
+          '& .MuiOutlinedInput-root': {
+            height: '40px',
+            borderRadius: '20px',
+            backgroundColor: colors.white,
+            '& fieldset': {
+              borderColor: colors.darkGray,
+              borderRadius: '20px',
+            },
+            '&:hover fieldset': {
+              borderColor: colors.black,
+            },
+            '&.Mui-focused fieldset': {
+              borderColor: colors.brightPurple,
+            },
+            '& input': {
+              padding: '8px 12px',
+              height: '40px',
+              display: 'flex',
+              alignItems: 'center',
+            },
+          },
+        },
+      },
+    },
+
+    // Select 特定樣式
+    MuiSelect: {
+      defaultProps: {
+        variant: 'outlined',
+        fullWidth: false,
+      },
+      styleOverrides: {
+        root: {
+          backgroundColor: 'transparent',
+          '& .MuiOutlinedInput-notchedOutline': {
+            display: 'none', // 完全隱藏 fieldset
+          },
+        },
+        select: {
+          height: '40px',
+          minWidth: '200px',
+          padding: '8px 16px',
+          display: 'flex',
+          alignItems: 'center',
+          backgroundColor: colors.lightBlue,
           borderRadius: '20px',
+        },
+        icon: {
+          right: '12px',
+        },
+      },
+    },
+
+    // OutlinedInput 基礎樣式，只應用於非 Select 的情況
+    MuiOutlinedInput: {
+      styleOverrides: {
+        root: {
+          // 只針對純 OutlinedInput 和 TextField 的樣式
+          '&:not(.MuiSelect-root)': {
+            height: '40px',
+            borderRadius: '20px',
+            backgroundColor: 'transparent',
+            '& fieldset': {
+              borderColor: colors.darkGray,
+            },
+            '&:hover fieldset': {
+              borderColor: colors.black,
+            },
+            '&.Mui-focused fieldset': {
+              borderColor: colors.brightPurple,
+            },
+          },
+          // Select 的特殊樣式
+          '&.MuiSelect-root': {
+            backgroundColor: 'transparent',
+            // 針對 fieldset 的完整選擇器路徑
+            '& .MuiOutlinedInput-notchedOutline': {
+              display: 'none',
+            },
+            '& fieldset': {
+              display: 'none',
+            },
+          },
+        },
+        input: {
+          padding: '8px 12px',
+          height: '40px',
+          display: 'flex',
+          alignItems: 'center',
+        },
+      },
+    },
+
+    MuiButton: {
+      variants: [
+        {
+          props: { variant: 'basic' },
+          style: {
+            width: '100px',
+            height: '32px',
+            backgroundColor: colors.primaryPurple,
+            color: colors.white,
+            borderRadius: '16px',
+            padding: '4px 16px',
+            textTransform: 'none',
+            boxShadow: `
+              0px 1px 3px rgba(0, 0, 0, 0.15),
+              0px 2px 2px rgba(0, 0, 0, 0.1)
+            `,
+            '&:hover': {
+              backgroundColor: colors.brightPurple,
+              boxShadow: `
+                0px 1px 2px rgba(0, 0, 0, 0.2),
+                0px 2px 0px rgba(0, 0, 0, 0)
+              `,
+            },
+            '&:disabled': {
+              backgroundColor: colors.lightGray,
+              color: colors.darkGray,
+            },
+          },
+        },
+      ],
+    },
+
+    // FormControl 樣式
+    MuiFormControl: {
+      styleOverrides: {
+        root: {
+          '& .MuiInputLabel-root': {
+            transform: 'translate(12px, 8px) scale(1)',
+            '&.MuiInputLabel-shrink': {
+              transform: 'translate(12px, -9px) scale(0.75)',
+            },
+          },
         },
       },
     },
   },
 });
+
+// 使用主題變體
+declare module '@mui/material/Button' {
+  interface ButtonPropsVariantOverrides {
+    basic: true;
+  }
+}
 
 export { colors };
 export default theme;

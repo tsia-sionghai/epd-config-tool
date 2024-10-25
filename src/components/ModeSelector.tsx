@@ -1,55 +1,54 @@
+// src/components/ModeSelector.tsx
 import React from 'react';
-import Grid from '@mui/material/Grid';
-import { useTranslation } from 'react-i18next';
-import SelectableButton from './SelectableButton';
-
-// 導入自定義圖片
-import autoModeIcon from '../assets/img_local.png';
-import cmsModeIcon from '../assets/img_cms.png';
-import nasModeIcon from '../assets/img_nas.png';
+import { Grid } from '@mui/material';
+import SelectableButton from './common/SelectableButton';
+import { ModeType } from '../types/common';
+import { 
+  AutoModeIcon, 
+  CMSModeIcon, 
+  NASModeIcon 
+} from './icons/ModeIcons';
 
 interface ModeSelectorProps {
-  value: 'auto' | 'cms' | 'nas';
-  onChange: (value: 'auto' | 'cms' | 'nas') => void;
+  value: ModeType;
+  onChange: (value: ModeType) => void;
 }
 
 const ModeSelector: React.FC<ModeSelectorProps> = ({ value, onChange }) => {
-  const { t } = useTranslation();
-  const modeOptions = [
-    {
-      mode: 'auto',
-      icon: autoModeIcon,
-      title: t('mode.auto.title'),
-      description: t('mode.auto.description')
-    },
-    {
-      mode: 'cms',
-      icon: cmsModeIcon,
-      title: t('mode.cms.title'),
-      description: t('mode.cms.description')
-    },
-    {
-      mode: 'nas',
-      icon: nasModeIcon,
-      title: t('mode.nas.title'),
-      description: t('mode.nas.description')
-    }
-  ];
-
   return (
     <Grid container spacing={2}>
-      {modeOptions.map((item) => (
-        <Grid item xs={4} key={item.mode}>
-          <SelectableButton
-            selected={value === item.mode}
-            onClick={() => onChange(item.mode)}
-            icon={<img src={item.icon} alt={item.title} style={{ width: 48, height: 48 }} />}
-            title={item.title}
-            description={item.description}
-            sx={{ height: '100%' }}
-          />
-        </Grid>
-      ))}
+      <Grid item xs={4}>
+        <SelectableButton
+          selected={value === 'auto'}
+          onClick={() => onChange('auto')}
+          icon={<AutoModeIcon />}
+          description="直接於本機端進行圖片輪播。"
+        >
+          單機操作 (離線模式)
+        </SelectableButton>
+      </Grid>
+      
+      <Grid item xs={4}>
+        <SelectableButton
+          selected={value === 'cms'}
+          onClick={() => onChange('cms')}
+          icon={<CMSModeIcon />}
+          description="透過內容控制系統(CMS)來進行控制及換圖。"
+        >
+          CMS控制 (連線模式)
+        </SelectableButton>
+      </Grid>
+      
+      <Grid item xs={4}>
+        <SelectableButton
+          selected={value === 'nas'}
+          onClick={() => onChange('nas')}
+          icon={<NASModeIcon />}
+          description="透過NAS進行換圖。"
+        >
+          NAS (連線模式)
+        </SelectableButton>
+      </Grid>
     </Grid>
   );
 };

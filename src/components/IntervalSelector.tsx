@@ -2,6 +2,9 @@ import React from 'react';
 import { Box, TextField, IconButton, styled } from '@mui/material';
 import increaseIcon from '../assets/btn_increase.png';
 import decreaseIcon from '../assets/btn_decrease.png';
+import HintMessage from './HintMessage';
+import theme from '../theme';
+import { useTranslation } from 'react-i18next';
 
 const StyledIconButton = styled(IconButton)({
   width: 32,
@@ -41,6 +44,7 @@ const IntervalSelector: React.FC<IntervalSelectorProps> = ({
   min = -Infinity,
   max = Infinity,
 }) => {
+  const { t } = useTranslation();
   const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const newValue = parseInt(event.target.value, 10);
     if (!isNaN(newValue) && newValue >= min && newValue <= max) {
@@ -68,6 +72,12 @@ const IntervalSelector: React.FC<IntervalSelectorProps> = ({
       <StyledIconButton onClick={() => onChange(Math.min(max, value + 1))} disabled={value >= max} sx={{ ml: 1 }}>
         <img src={increaseIcon} alt="Increase" width={32} height={32} />
       </StyledIconButton>
+      <HintMessage
+        type="error"
+        message={t('common.hint.intervalMin')}
+        containerSx={{ ml: 2 }}
+        typographySx={{ color: theme.palette.text.primary }}
+      />
     </Box>
   );
 };

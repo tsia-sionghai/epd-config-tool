@@ -1,55 +1,54 @@
+// src/components/PowerModeSelector.tsx
 import React from 'react';
-import Grid from '@mui/material/Grid';
-import { useTranslation } from 'react-i18next';
-import SelectableButton from './SelectableButton';
+import { Grid } from '@mui/material';
+import SelectableButton from './common/SelectableButton';
+import { PowerModeType } from '../types/common';
+import { 
+  OffModeIcon, 
+  SleepModeIcon, 
+  NormalModeIcon 
+} from './icons/PowerModeIcons';
 
-// 導入自定義圖片
-import offPwerModeIcon from '../assets/img_poweroff.png';
-import sleepPowerModeIcon from '../assets/img_sleep.png';
-import normalPowerModeIcon from '../assets/img_wake.png';
-
-interface ModeSelectorProps {
-  value: 'normal' | 'hibernation' | 'off';
-  onChange: (value: 'normal' | 'hibernation' | 'off') => void;
+interface PowerModeSelectorProps {
+  value: PowerModeType;
+  onChange: (value: PowerModeType) => void;
 }
 
-const PowerModeSelector: React.FC<ModeSelectorProps> = ({ value, onChange }) => {
-  const { t } = useTranslation();
-  const modeOptions = [
-    {
-      mode: 'off',
-      icon: offPwerModeIcon,
-      title: t('powerMode.off.title'),
-      description: t('powerMode.off.description')
-    },
-    {
-      mode: 'hibernation',
-      icon: sleepPowerModeIcon,
-      title: t('powerMode.hibernation.title'),
-      description: t('powerMode.hibernation.description')
-    },
-    {
-      mode: 'normal',
-      icon: normalPowerModeIcon,
-      title: t('powerMode.normal.title'),
-      description: t('powerMode.normal.description')
-    }
-  ];
-
+const PowerModeSelector: React.FC<PowerModeSelectorProps> = ({ value, onChange }) => {
   return (
     <Grid container spacing={2}>
-      {modeOptions.map((item) => (
-        <Grid item xs={4} key={item.mode}>
-          <SelectableButton
-            selected={value === item.mode}
-            onClick={() => onChange(item.mode)}
-            icon={<img src={item.icon} alt={item.title} style={{ width: 48, height: 48 }} />}
-            title={item.title}
-            description={item.description}
-            sx={{ height: '100%' }}
-          />
-        </Grid>
-      ))}
+      <Grid item xs={4}>
+        <SelectableButton
+          selected={value === 'off'}
+          onClick={() => onChange('off')}
+          icon={<OffModeIcon />}
+          description="畫面刷新後，機台將會關機。"
+        >
+          Off Mode
+        </SelectableButton>
+      </Grid>
+      
+      <Grid item xs={4}>
+        <SelectableButton
+          selected={value === 'hibernation'}
+          onClick={() => onChange('hibernation')}
+          icon={<SleepModeIcon />}
+          description="畫面刷新後，機台將會進入睡眠模式。"
+        >
+          Sleep Mode
+        </SelectableButton>
+      </Grid>
+      
+      <Grid item xs={4}>
+        <SelectableButton
+          selected={value === 'normal'}
+          onClick={() => onChange('normal')}
+          icon={<NormalModeIcon />}
+          description="畫面刷新後，機台將會持續醒著。"
+        >
+          Normal Mode
+        </SelectableButton>
+      </Grid>
     </Grid>
   );
 };
