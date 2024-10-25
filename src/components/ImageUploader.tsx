@@ -3,14 +3,17 @@ import React, { useCallback, useMemo } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { Box, Button, Typography, IconButton, styled } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
-import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
+import { DragDropContext, Droppable, Draggable, DropResult } from 'react-beautiful-dnd';
 import { useTranslation } from 'react-i18next';
 
-// Styled Components
 const DropzoneArea = styled(Box)(({ theme }) => ({
   border: `2px dashed ${theme.palette.grey[300]}`,
   borderRadius: theme.shape.borderRadius,
-  padding: theme.spacing(4),
+  display: 'flex',
+  justifyContent: 'center',
+  alignItems: 'center',
+  // padding: theme.spacing(1),
+  height: '150px',
   textAlign: 'center',
   backgroundColor: theme.palette.grey[50],
   marginBottom: theme.spacing(2),
@@ -20,33 +23,49 @@ const DropzoneArea = styled(Box)(({ theme }) => ({
   },
 }));
 
-const ImagePreviewContainer = styled(Box)(({ theme }) => ({
-  display: 'grid',
-  gridTemplateColumns: 'repeat(auto-fill, 150px)', // 固定寬度
+const PreviewContainer = styled('div')(({ theme }) => ({  // 改用 div 代替 Box
+  display: 'flex',
+  flexWrap: 'wrap',
   gap: theme.spacing(2),
   width: '100%',
-  marginTop: theme.spacing(2),
+  padding: theme.spacing(1),
+  minHeight: 200,
 }));
+
+// DraggablePreview 需要額外的空間來容納刪除按鈕
+const DraggablePreview = styled(Box)({
+  display: 'flex',
+  flexDirection: 'column',
+  alignItems: 'center',
+  width: '150px',
+  padding: '8px', // 添加內邊距來容納溢出的刪除按鈕
+  userSelect: 'none',
+  cursor: 'grab',
+  '&:active': {
+    cursor: 'grabbing',
+  },
+});
 
 const ImagePreview = styled(Box)(({ theme }) => ({
   position: 'relative',
-  width: '150px',           // 固定寬度
-  height: '200px',          // 固定高度
+  width: '100%',
+  height: '200px',
   backgroundColor: theme.palette.grey[200],
   borderRadius: theme.shape.borderRadius,
-  overflow: 'hidden',
-  border: `1px solid ${theme.palette.grey[300]}`,
+  overflow: 'visible', // 改為 visible 以顯示溢出的刪除按鈕
   '& img': {
     width: '100%',
     height: '100%',
     objectFit: 'contain',
+    display: 'block',
+    borderRadius: theme.shape.borderRadius, // 保持圖片的圓角
   },
 }));
 
 const DeleteButton = styled(IconButton)(({ theme }) => ({
   position: 'absolute',
-  top: -8,
-  right: -8,
+  top: theme.spacing(-1),
+  right: theme.spacing(-1),
   width: 24,
   height: 24,
   padding: 0,
@@ -62,16 +81,9 @@ const DeleteButton = styled(IconButton)(({ theme }) => ({
 }));
 
 const SequenceNumber = styled(Typography)(({ theme }) => ({
-  position: 'absolute',
-  bottom: theme.spacing(1),
-  left: '50%',
-  transform: 'translateX(-50%)',
-  color: theme.palette.common.white,
-  backgroundColor: 'rgba(0, 0, 0, 0.5)',
-  padding: '2px 12px',
-  borderRadius: 12,
-  fontSize: '0.75rem',
-  zIndex: 1,
+  marginTop: theme.spacing(1),
+  color: theme.palette.text.primary,
+  textAlign: 'center',
 }));
 
 interface ImageUploaderProps {
@@ -107,7 +119,7 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
   const { getRootProps, getInputProps, open } = useDropzone({
     onDrop,
     accept: {
-      'image/*': ['.jpg', '.jpeg', '.png']
+      'image/*': ['.jpg', '.jpeg', '.png', '.bmp', '.gif']
     },
     noClick: true,
     noKeyboard: true,
@@ -121,13 +133,16 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
     }
   }, [safeImages.length, maxImages, open]);
 
-  const onDragEnd = useCallback((result: any) => {
-    if (!result.destination) return;
-    
-    const items = Array.from(safeImages);
-    const [reorderedItem] = items.splice(result.source.index, 1);
-    items.splice(result.destination.index, 0, reorderedItem);
-    setImages(items);
+  const onDragEnd = useCallback((result: DropResult) => {
+    if (!result.destination) {
+      return;
+    }
+
+    const reorderedItems = Array.from(safeImages);
+    const [reorderedItem] = reorderedItems.splice(result.source.index, 1);
+    reorderedItems.splice(result.destination.index, 0, reorderedItem);
+
+    setImages(reorderedItems);
   }, [safeImages, setImages]);
 
   const removeImage = useCallback((index: number) => {
@@ -153,60 +168,53 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
       
       {safeImages.length > 0 && (
         <DragDropContext onDragEnd={onDragEnd}>
-          <Droppable droppableId="images" direction="horizontal">
+          <Droppable droppableId="droppable" direction="horizontal">
             {(provided) => (
-              <ImagePreviewContainer
-                {...provided.droppableProps}
+              <PreviewContainer
                 ref={provided.innerRef}
+                {...provided.droppableProps}
               >
                 {safeImages.map((image, index) => (
                   <Draggable 
-                    key={`image-${index}`}
-                    draggableId={`image-${index}`}
+                    key={`draggable-${index}`}
+                    draggableId={`draggable-${index}`}
                     index={index}
                   >
-                    {(provided) => (
-                      <ImagePreview
+                    {(provided, snapshot) => (
+                      <DraggablePreview
                         ref={provided.innerRef}
                         {...provided.draggableProps}
                         {...provided.dragHandleProps}
+                        style={{
+                          ...provided.draggableProps.style,
+                          opacity: snapshot.isDragging ? 0.6 : 1,
+                        }}
                       >
-                        <Box 
-                          sx={{
-                            width: '100%',
-                            height: '100%',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            transform: `rotate(${rotate}deg)`,
-                            transformOrigin: 'center'
-                          }}
-                        >
+                        <ImagePreview>
                           <img 
                             src={image} 
                             alt={`preview ${index + 1}`}
-                            style={{
-                              maxWidth: '100%',
-                              maxHeight: '100%',
-                              objectFit: 'contain'
-                            }}
                           />
-                        </Box>
-                        <DeleteButton
-                          onClick={() => removeImage(index)}
-                          aria-label="remove image"
-                        >
-                          <CloseIcon />
-                        </DeleteButton>
+                          <DeleteButton
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              e.preventDefault();
+                              removeImage(index);
+                            }}
+                            aria-label="remove image"
+                          >
+                            <CloseIcon />
+                          </DeleteButton>
+                        </ImagePreview>
                         <SequenceNumber>
                           {index + 1}
                         </SequenceNumber>
-                      </ImagePreview>
+                      </DraggablePreview>
                     )}
                   </Draggable>
                 ))}
                 {provided.placeholder}
-              </ImagePreviewContainer>
+              </PreviewContainer>
             )}
           </Droppable>
         </DragDropContext>
