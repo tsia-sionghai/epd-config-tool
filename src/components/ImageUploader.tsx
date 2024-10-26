@@ -23,7 +23,7 @@ const DropzoneArea = styled(Box)(({ theme }) => ({
   },
 }));
 
-const PreviewContainer = styled('div')(({ theme }) => ({  // 改用 div 代替 Box
+const PreviewContainer = styled('div')(({ theme }) => ({
   display: 'flex',
   flexWrap: 'wrap',
   gap: theme.spacing(2),
@@ -32,14 +32,17 @@ const PreviewContainer = styled('div')(({ theme }) => ({  // 改用 div 代替 B
   minHeight: 200,
 }));
 
-// DraggablePreview 需要額外的空間來容納刪除按鈕
 const DraggablePreview = styled(Box)({
   display: 'flex',
   flexDirection: 'column',
   alignItems: 'center',
   width: '150px',
-  padding: '8px', // 添加內邊距來容納溢出的刪除按鈕
   userSelect: 'none',
+});
+
+const DraggableItem = styled('div')({
+  width: '150px',
+  padding: '8px',
   cursor: 'grab',
   '&:active': {
     cursor: 'grabbing',
@@ -56,7 +59,7 @@ const ImagePreview = styled(Box)(({ theme }) => ({
   '& img': {
     width: '100%',
     height: '100%',
-    objectFit: 'contain',
+    objectFit: 'cover',
     display: 'block',
     borderRadius: theme.shape.borderRadius, // 保持圖片的圓角
   },
@@ -166,59 +169,64 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
         </Typography>
       </DropzoneArea>
       
-      {safeImages.length > 0 && (
-        <DragDropContext onDragEnd={onDragEnd}>
-          <Droppable droppableId="droppable" direction="horizontal">
-            {(provided) => (
-              <PreviewContainer
-                ref={provided.innerRef}
-                {...provided.droppableProps}
-              >
-                {safeImages.map((image, index) => (
+      <DragDropContext onDragEnd={onDragEnd}>
+        <Droppable droppableId="droppable-images" direction="horizontal">
+          {(provided) => (
+            <PreviewContainer
+              ref={provided.innerRef}
+              {...provided.droppableProps}
+            >
+              {safeImages.map((image, index) => {
+                const id = `image-${index}`;
+                return (
                   <Draggable 
-                    key={`draggable-${index}`}
-                    draggableId={`draggable-${index}`}
+                    key={id}
+                    draggableId={id}
                     index={index}
                   >
                     {(provided, snapshot) => (
-                      <DraggablePreview
+                      <DraggableItem
                         ref={provided.innerRef}
                         {...provided.draggableProps}
                         {...provided.dragHandleProps}
-                        style={{
-                          ...provided.draggableProps.style,
-                          opacity: snapshot.isDragging ? 0.6 : 1,
-                        }}
                       >
-                        <ImagePreview>
-                          <img 
-                            src={image} 
-                            alt={`preview ${index + 1}`}
-                          />
-                          <DeleteButton
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              e.preventDefault();
-                              removeImage(index);
-                            }}
-                            aria-label="remove image"
-                          >
-                            <CloseIcon />
-                          </DeleteButton>
-                        </ImagePreview>
-                        <SequenceNumber>
-                          {index + 1}
-                        </SequenceNumber>
-                      </DraggablePreview>
+                        <DraggablePreview
+                          sx={{
+                            opacity: snapshot.isDragging ? 0.6 : 1,
+                            transform: snapshot.isDragging ? 'scale(1.05)' : 'scale(1)',
+                            transition: 'all 0.2s ease',
+                          }}
+                        >
+                          <ImagePreview>
+                            <img 
+                              src={image} 
+                              alt={`preview ${index + 1}`}
+                            />
+                            <DeleteButton
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                e.preventDefault();
+                                removeImage(index);
+                              }}
+                              aria-label="remove image"
+                            >
+                              <CloseIcon />
+                            </DeleteButton>
+                          </ImagePreview>
+                          <SequenceNumber>
+                            {index + 1}
+                          </SequenceNumber>
+                        </DraggablePreview>
+                      </DraggableItem>
                     )}
                   </Draggable>
-                ))}
-                {provided.placeholder}
-              </PreviewContainer>
-            )}
-          </Droppable>
-        </DragDropContext>
-      )}
+                );
+              })}
+              {provided.placeholder}
+            </PreviewContainer>
+          )}
+        </Droppable>
+      </DragDropContext>
     </Box>
   );
 };
