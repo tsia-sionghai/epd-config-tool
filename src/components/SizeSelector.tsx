@@ -22,6 +22,7 @@ const SizeSelector: React.FC<SizeSelectorProps> = ({ value, onChange }) => {
 
   return (
     <Select
+      variant="outlined" 
       value={value}
       onChange={(e) => onChange(e.target.value as SizeType)}
     >
