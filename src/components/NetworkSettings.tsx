@@ -62,7 +62,8 @@ const NetworkSettings: React.FC<NetworkSettingsProps> = ({
           </Grid>
           <Grid item xs={10}>
             <TextField 
-              fullWidth 
+              variant="outlined"
+              fullWidth={true} 
               value={ssid} 
               onChange={(e) => setSSID(e.target.value)}
               placeholder={t('common.placeholder.ssid')}
@@ -78,7 +79,8 @@ const NetworkSettings: React.FC<NetworkSettingsProps> = ({
               </Grid>
               <Grid item xs={10}>
                 <TextField 
-                  fullWidth 
+                  variant="outlined"
+                  fullWidth={true}  
                   value={password} 
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder={t('common.placeholder.password')}
@@ -96,7 +98,8 @@ const NetworkSettings: React.FC<NetworkSettingsProps> = ({
               </Grid>
               <Grid item xs={10}>
                 <TextField 
-                  fullWidth 
+                  variant="outlined"
+                  fullWidth={true}  
                   value={ip} 
                   onChange={(e) => setIP(e.target.value)}
                   placeholder={t('common.placeholder.ip')}
@@ -110,7 +113,8 @@ const NetworkSettings: React.FC<NetworkSettingsProps> = ({
               </Grid>
               <Grid item xs={10}>
                 <TextField 
-                  fullWidth 
+                  variant="outlined"
+                  fullWidth={true}  
                   value={netmask} 
                   onChange={(e) => setNetmask(e.target.value)}
                   placeholder={t('common.placeholder.netmask')}
@@ -124,7 +128,8 @@ const NetworkSettings: React.FC<NetworkSettingsProps> = ({
               </Grid>
               <Grid item xs={10}>
                 <TextField 
-                  fullWidth 
+                  variant="outlined"
+                  fullWidth={true}  
                   value={gateway} 
                   onChange={(e) => setGateway(e.target.value)}
                   placeholder={t('common.placeholder.gateway')}
@@ -138,7 +143,8 @@ const NetworkSettings: React.FC<NetworkSettingsProps> = ({
               </Grid>
               <Grid item xs={10}>
                 <TextField 
-                  fullWidth 
+                  variant="outlined"
+                  fullWidth={true}  
                   value={dns} 
                   onChange={(e) => setDNS(e.target.value)}
                   placeholder={t('common.placeholder.dns')}
@@ -155,7 +161,8 @@ const NetworkSettings: React.FC<NetworkSettingsProps> = ({
             </Grid>
             <Grid item xs={10}>
               <TextField
-                fullWidth
+                variant="outlined"
+                fullWidth={true} 
                 value={serverURL}
                 onChange={(e) => setServerURL(e.target.value)}
                 placeholder={t('common.placeholder.serverURL')}
@@ -171,7 +178,8 @@ const NetworkSettings: React.FC<NetworkSettingsProps> = ({
             </Grid>
             <Grid item xs={10}>
               <TextField
-                fullWidth
+                variant="outlined"
+                fullWidth={true} 
                 value={nasURL}
                 onChange={(e) => setNasURL(e.target.value)}
                 placeholder={t('common.placeholder.nasURL')}

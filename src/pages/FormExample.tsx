@@ -56,16 +56,18 @@ const FormExample: React.FC = () => {
           <Box component="form" sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
             {/* 文字輸入範例 */}
             <TextField
+              variant="outlined"
+              fullWidth={true} 
               label="使用者名稱"
-              fullWidth
               value={formState.username}
               onChange={(e) => setFormState({ ...formState, username: e.target.value })}
             />
 
             {/* 錯誤狀態範例 */}
             <TextField
-              label="電子郵件"
-              fullWidth
+              variant="outlined"
+              fullWidth={true} 
+              label="電子郵件" 
               error={formState.hasError}
               helperText={formState.hasError ? "請輸入有效的電子郵件地址" : ""}
               value={formState.email}
@@ -76,6 +78,8 @@ const FormExample: React.FC = () => {
             <FormControl fullWidth>
               <InputLabel>類型</InputLabel>
               <Select
+                variant="outlined"
+                fullWidth={true} 
                 value={formState.type}
                 label="類型"
                 onChange={(e) => setFormState({ ...formState, type: e.target.value })}

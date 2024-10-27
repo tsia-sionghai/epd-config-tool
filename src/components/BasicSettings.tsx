@@ -43,7 +43,8 @@ const BasicSettings: React.FC<BasicSettingsProps> = ({
           </Grid>
           <Grid item xs={10}>
             <TextField
-              fullWidth
+              variant="outlined" 
+              fullWidth={true} 
               value={customer}
               onChange={(e) => setCustomer(e.target.value)}
               placeholder={t('common.placeholder.enterName')}
