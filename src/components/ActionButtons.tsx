@@ -1,6 +1,6 @@
 // src/components/ActionButtons.tsx
 import React from 'react';
-import { Box } from '@mui/material';
+import { Box, Grid } from '@mui/material';
 import { useTranslation } from 'react-i18next';
 import CustomButton from './common/CustomButton';
 import { ModeType } from '../types/common';
@@ -17,11 +17,13 @@ const ActionButtons: React.FC<ActionButtonsProps> = ({
   const { t } = useTranslation();
 
   return (
-    <Box display="flex" alignItems="center" mb={2}>
-      <CustomButton onClick={onGenerateConfig}>
-        {t('common.button.generateConfig')}
-      </CustomButton>
-    </Box>
+    <Grid item xs={12}>
+      <Box display="flex" alignItems="center">
+        <CustomButton onClick={onGenerateConfig}>
+          {t('common.button.generateConfig')}
+        </CustomButton>
+      </Box>
+    </Grid>
   );
 };
 
