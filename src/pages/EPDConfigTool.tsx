@@ -1,6 +1,9 @@
 // src/components/EPDConfigTool.tsx
-import React, { useState } from 'react';
-import { Box } from '@mui/material';
+import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
+import { Alert, Box, Snackbar } from '@mui/material';
+import { checkBrowserSupport } from '../utils/browserCheck';
 import {
   ModeType,
   PowerModeType,
@@ -8,19 +11,37 @@ import {
   NetworkConfig,
   ImageConfig
 } from '../types/common';
+import PageHeader from '../components/PageHeader';
 import BasicSettings from '../components/BasicSettings';
 import NetworkSettings from '../components/NetworkSettings';
 import ImageSettings from '../components/ImageSettings';
 import SDCardPathSettings from '../components/SDCardPathSettings';
 import ActionButtons from '../components/ActionButtons';
-import PageHeader from '../components/PageHeader';
 
 const EPDConfigurationTool: React.FC = () => {
+  const { t } = useTranslation();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    // 檢查瀏覽器支援
+    if (!checkBrowserSupport()) {
+      // 可以選擇直接導向到錯誤頁面
+      navigate('/browser-not-supported');
+      // 或者顯示警告訊息
+      alert(t('common.error.browserNotSupported'));
+      // 或者顯示 Snackbar 提示
+      setShowBrowserWarning(true);
+    }
+  }, [navigate, t]);
+
+  const [showBrowserWarning, setShowBrowserWarning] = useState(false);
+
   // Basic settings state
   const [customer, setCustomer] = useState('');
   const [mode, setMode] = useState<ModeType>('auto');
   const [powerMode, setPowerMode] = useState<PowerModeType>('hibernation');
   const [timeZone, setTimeZone] = useState<TimeZoneType>('GMT+08:00');
+  const [sdCardPath, setSdCardPath] = useState('');
 
   // Network settings state
   const [networkConfig, setNetworkConfig] = useState<NetworkConfig>({
@@ -44,7 +65,6 @@ const EPDConfigurationTool: React.FC = () => {
   // Additional settings state
   const [serverURL, setServerURL] = useState('https://api.ezread.com.tw/schedule');
   const [nasURL, setNasURL] = useState('');
-  const [sdCardPath, setSdCardPath] = useState('\\E');
 
   const handleNetworkConfigChange = (updates: Partial<NetworkConfig>) => {
     setNetworkConfig(prev => ({ ...prev, ...updates }));
@@ -65,10 +85,6 @@ const EPDConfigurationTool: React.FC = () => {
 
   const handleGenerateConfig = () => {
     console.log('Generating config...');
-  };
-
-  const handleSelectPath = () => {
-    console.log('Selecting path...');
   };
 
   return (
@@ -105,13 +121,29 @@ const EPDConfigurationTool: React.FC = () => {
       <SDCardPathSettings
         sdCardPath={sdCardPath}
         setSdCardPath={setSdCardPath}
-        onSelectPath={handleSelectPath}
       />
 
       <ActionButtons
         mode={mode}
         onGenerateConfig={handleGenerateConfig}
       />
+
+      {/* 瀏覽器警告提示 */}
+      <Snackbar 
+        open={showBrowserWarning}
+        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+      >
+        <Alert 
+          severity="warning" 
+          variant="filled"
+          sx={{ 
+            width: '100%',
+            backgroundColor: theme => theme.palette.primary.dark,
+          }}
+        >
+          {t('common.error.browserNotSupported')}
+        </Alert>
+      </Snackbar>
     </Box>
   );
 };

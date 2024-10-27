@@ -1,97 +1,112 @@
 // src/components/SDCardPathSettings.tsx
 import React from 'react';
-import { Box, Grid, Typography, TextField, Button, InputBase } from '@mui/material';
+import { Box, Grid, TextField, Button, styled } from '@mui/material';
 import { useTranslation } from 'react-i18next';
 import HintMessage from './HintMessage';
-import theme from '../theme';
 
 interface SDCardPathSettingsProps {
   sdCardPath: string;
   setSdCardPath: (path: string) => void;
-  onSelectPath: () => void;
 }
+
+const StyledTextField = styled(TextField)(({ theme }) => ({
+  '& .MuiInputBase-root': {
+    backgroundColor: 'transparent',
+    padding: 0,
+    minWidth: '20px',
+    width: 'fit-content',
+    '&::before': {
+      display: 'none',
+    },
+    '&::after': {
+      display: 'none',
+    },
+    '&:hover': {
+      backgroundColor: 'transparent',
+    },
+    '&.Mui-focused': {
+      backgroundColor: 'transparent',
+    },
+  },
+  '& .MuiInputBase-input': {
+    padding: 0,
+    color: theme.palette.text.primary,
+    '&.Mui-disabled': {
+      WebkitTextFillColor: theme.palette.text.primary,
+      color: theme.palette.text.primary,
+      cursor: 'default',
+    },
+  },
+}));
+
+const LabelWrapper = styled('span')({
+  whiteSpace: 'nowrap', // 防止 SD Card Path 文字斷行
+});
+
+const PathSelectionContainer = styled(Box)(({ theme }) => ({
+  marginBottom: theme.spacing(2), // 16px 下方邊距
+}));
 
 const SDCardPathSettings: React.FC<SDCardPathSettingsProps> = ({
   sdCardPath,
   setSdCardPath,
-  onSelectPath,
 }) => {
   const { t } = useTranslation();
 
+  const handleSelectPath = async () => {
+    try {
+      if ('showDirectoryPicker' in window) {
+        const dirHandle = await window.showDirectoryPicker({
+          mode: 'read',
+        });
+        setSdCardPath(dirHandle.name);
+      } else {
+        alert('請使用 Chrome 瀏覽器以獲得完整功能支援');
+      }
+    } catch (err) {
+      console.error('Error selecting directory:', err);
+    }
+  };
+
   return (
-    <>
-      <Grid item xs={12} sx={{ ml: 1, mr: 1 }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-          <Typography component="span" noWrap={true}>{t('common.label.sdCardPath')}</Typography>
-          <TextField
+    <PathSelectionContainer sx={{ pl: 1, pr: 1}}>
+      <Grid item xs={12}>
+        <Box sx={{ 
+          display: 'inline-flex', 
+          alignItems: 'center',
+          gap: 2,
+        }}>
+          <LabelWrapper>{t('common.label.sdCardPath')}</LabelWrapper>
+          <StyledTextField
             variant="standard"
             value={sdCardPath}
-            placeholder="\\E"
             disabled
-            fullWidth={false}  // 添加這行，防止全寬
-            slotProps={{
-              input: {
-                style: {
-                  padding: 0,
-                  color: theme.palette.text.primary,
-                },
-              },
-            }}
-            sx={{
-              // ml: 4,
-              display: 'inline-flex', // 添加這行，確保只占用需要的空間
-              '& .MuiInputBase-root': {
-                width: 'fit-content', // 改用 fit-content
-                background: 'transparent',
-                display: 'inline-flex', // 添加這行
-              },
-              '& .MuiInputBase-input': {
-                padding: 0,
-                minWidth: '24px',
-                width: 'fit-content', // 改用 fit-content
-                opacity: 1,
-                '-webkit-text-fill-color': theme.palette.text.primary,
-                background: 'transparent',
-              },
-              '& .MuiInput-underline:before': { 
-                content: 'none'
-              },
-              '& .MuiInput-underline:after': { 
-                content: 'none'
-              },
-              '& .MuiInput-underline:hover:not(.Mui-disabled):before': {
-                content: 'none'
-              },
-              '& .MuiInput-underline.Mui-disabled:before': {
-                content: 'none'
-              },
-              '& .Mui-disabled': {
-                opacity: 1,
-                color: theme.palette.text.primary,
+            inputProps={{
+              style: {
                 cursor: 'default',
-                '-webkit-text-fill-color': theme.palette.text.primary,
-                background: 'transparent', // 確保禁用狀態下背景透明
-              },
-              // 額外確保所有層級都是透明的
-              '& *': {
-                background: 'transparent !important',
               }
             }}
           />
-          <Button variant="basic" onClick={onSelectPath} sx={{ ml: 1 }}>
+          <Button 
+            variant="basic"
+            onClick={handleSelectPath}
+            sx={{ 
+              minWidth: 'auto',
+              textWrap: 'nowrap',
+            }}
+          >
             {t('common.button.selectPath')}
           </Button>
         </Box>
       </Grid>
       <Grid item xs={12}>
-        <HintMessage
+        <HintMessage 
           type="error"
           message={t('common.hint.sdCardPathCheck')}
-          containerSx={{ mt: 1, mb: 2 }}
-          typographySx={{ color: theme.palette.text.primary }}
+          typographySx={{ color: 'text.primary' }}
         />
       </Grid>
-    </>
+    </PathSelectionContainer>
   );
 };
 

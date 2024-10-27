@@ -8,6 +8,9 @@
       "nas": "NAS設定",
       "nasBinary": "播放圖片設定"
     },
+    "note": {
+      "browserSupport": "因瀏覽器的技術限制，目前僅支援 <1>Chrome</1> 和 Edge"
+    },
     "label": {
       "customer": "Customer",
       "mode": "Mode",
@@ -29,6 +32,8 @@
       "sdCardPath": "SD Card Path"
     },
     "button": {
+      "downloadChrome": "下載 Chrome",
+      "downloadEdge": "下載 Edge",
       "selectPath": "選擇路徑",
       "generateConfig": "產生設定檔案",
       "downloadBinary": "下載播放檔案"
@@ -51,6 +56,9 @@
       "selectImage": "選擇圖片"
     },
     "error": {
+      "browserNotSupportedTitle": "瀏覽器不支援",
+      "browserNotSupportedDesc": "本工具需要使用 Chrome 或 Edge 瀏覽器才能正常運作。請使用以下任一瀏覽器：",
+      "browserNotSupported": "請使用 Chrome 或 Edge 瀏覽器以獲得完整功能支援",
       "maxImagesReached": "已達到最大圖片數量上限 ({max} 張)"
     }
   },
