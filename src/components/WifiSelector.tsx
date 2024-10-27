@@ -14,7 +14,8 @@ const WifiSelector: React.FC<WifiSelectorProps> = ({ value, onChange }) => {
 
   return (
     <Select
-      fullWidth
+      variant="outlined"
+      fullWidth={true} 
       value={value}
       onChange={(e) => onChange(e.target.value as WifiType)}
     >
