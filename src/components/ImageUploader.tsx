@@ -12,7 +12,7 @@ const DropzoneArea = styled(Box)(({ theme }) => ({
   display: 'flex',
   justifyContent: 'center',
   alignItems: 'center',
-  // padding: theme.spacing(1),
+  padding: theme.spacing(1),
   height: '150px',
   textAlign: 'center',
   backgroundColor: theme.palette.grey[50],
@@ -29,7 +29,7 @@ const PreviewContainer = styled('div')(({ theme }) => ({
   gap: theme.spacing(2),
   width: '100%',
   padding: theme.spacing(1),
-  minHeight: 200,
+  // minHeight: 200,
 }));
 
 const DraggablePreview = styled(Box)({
