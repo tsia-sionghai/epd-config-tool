@@ -25,7 +25,7 @@
       "sdCardPathCheck": "Please ensure the selected path is on the SD card"
     },
     "placeholder": {
-      "enterName": "Please enter name",
+      "enterCustomer": "Please enter name",
       "dragOrSelect": "Drag and drop images here or",
       "selectImage": "Select Images"
     }

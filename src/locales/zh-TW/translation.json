@@ -9,7 +9,7 @@
       "nasBinary": "播放圖片設定"
     },
     "note": {
-      "browserSupport": "因技術限制，目前僅支援 <1>Chrome</1> 和 Edge 瀏覽器"
+      "browserSupport": "因瀏覽器的技術限制，目前僅支援 <1>Chrome</1> 和 Edge"
     },
     "label": {
       "customer": "Customer",
@@ -44,7 +44,7 @@
       "downloadBinaryToNAS": "請將下載的播放檔案上傳至您的NAS上。"
     },
     "placeholder": {
-      "enterName": "請輸入名稱",
+      "enterCustomer": "請輸入名稱",
       "ssid": "SSID",
       "password": "Password",
       "ip": "IP Address",
@@ -54,6 +54,9 @@
       "nasURL": "NAS Download URL",
       "dragOrSelect": "請將圖片拖曳至此 或",
       "selectImage": "選擇圖片"
+    },
+    "tooltip": {
+      "nasNotAvailable": "NAS 模式功能尚未開放，敬請期待"
     },
     "status": {
       "processing": "處理中...",
@@ -69,11 +72,12 @@
     "error": {
       "browserNotSupportedTitle": "瀏覽器不支援",
       "browserNotSupportedDesc": "本工具需要使用 Chrome 或 Edge 瀏覽器才能正常運作。請使用以下任一瀏覽器：",
-      "browserNotSupported": "請使用 Chrome 或 Edge 瀏覽器以獲得完整功能支援",
+      "browserNotSupported": "請使用 Chrome 或 Edge 瀏覽器",
+      "customerRequired": "請輸入客戶名稱",
       "maxImagesReached": "已達到最大圖片數量上限 ({max} 張)",
-      "noSDCardSelected": "請先選擇 SD Card 路徑",
-      "sdCardNotEmpty": "SD Card 不是空的，請手動清空後再試一次",
-      "configGenerationFailed": "產生設定檔時發生錯誤"
+      "noSDCardSelected": "請先選擇 SD 卡",
+      "sdCardNotEmpty": "SD 卡不是空的，請手動清空後再試一次",
+      "generateConfigFailed": "產生設定檔案失敗"
     }
   },
   "mode": {
