@@ -1,5 +1,5 @@
 // src/components/ImageUploader.tsx
-import React, { useCallback, useMemo } from 'react';
+import React, { useCallback, useMemo, useEffect } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { Box, Button, Typography, IconButton, styled } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
@@ -7,11 +7,10 @@ import {
   DragDropContext, 
   Droppable, 
   Draggable,
-  DroppableProvided,
-  DraggableProvided,
   DropResult 
 } from '@hello-pangea/dnd';
 import { useTranslation } from 'react-i18next';
+import { ImageFile } from '../types/common';
 
 const DropzoneArea = styled(Box)(({ theme }) => ({
   border: `2px dashed ${theme.palette.grey[300]}`,
@@ -36,7 +35,6 @@ const PreviewContainer = styled('div')(({ theme }) => ({
   gap: theme.spacing(2),
   width: '100%',
   padding: theme.spacing(1),
-  // minHeight: 200,
 }));
 
 const DraggablePreview = styled(Box)({
@@ -62,13 +60,13 @@ const ImagePreview = styled(Box)(({ theme }) => ({
   height: '200px',
   backgroundColor: theme.palette.grey[200],
   borderRadius: theme.shape.borderRadius,
-  overflow: 'visible', // 改為 visible 以顯示溢出的刪除按鈕
+  overflow: 'visible',
   '& img': {
     width: '100%',
     height: '100%',
     objectFit: 'cover',
     display: 'block',
-    borderRadius: theme.shape.borderRadius, // 保持圖片的圓角
+    borderRadius: theme.shape.borderRadius,
   },
 }));
 
@@ -97,8 +95,8 @@ const SequenceNumber = styled(Typography)(({ theme }) => ({
 }));
 
 interface ImageUploaderProps {
-  images: string[];
-  setImages: (images: string[] | ((prev: string[]) => string[])) => void;
+  images: ImageFile[];
+  setImages: (images: ImageFile[] | ((prev: ImageFile[]) => ImageFile[])) => void;
   maxImages?: number;
   size: string;
   rotate: number;
@@ -113,16 +111,27 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
 }) => {
   const { t } = useTranslation();
   
-  const safeImages = useMemo(() => 
-    Array.isArray(images) ? images : [],
-    [images]
-  );
+  const safeImages = useMemo(() => {
+    return Array.isArray(images) ? images.map((image, index) => ({
+      ...image,
+      id: image.id || `image-${index}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
+    })) : [];
+  }, [images]);
 
   const onDrop = useCallback(async (acceptedFiles: File[]) => {
-    const newImageUrls = acceptedFiles.map(file => URL.createObjectURL(file));
+    const newImages = acceptedFiles.map(file => ({
+      file,
+      preview: URL.createObjectURL(file),
+      name: file.name,
+      size: file.size,
+      type: file.type,
+      lastModified: file.lastModified,
+      id: `image-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
+    }));
+
     setImages(prev => {
       const prevImages = Array.isArray(prev) ? prev : [];
-      return [...prevImages, ...newImageUrls];
+      return [...prevImages, ...newImages];
     });
   }, [setImages]);
 
@@ -156,8 +165,24 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
   }, [safeImages, setImages]);
 
   const removeImage = useCallback((index: number) => {
-    setImages(prev => prev.filter((_, i) => i !== index));
+    setImages(prev => {
+      const newImages = prev.filter((_, i) => i !== index);
+      if (prev[index]?.preview) {
+        URL.revokeObjectURL(prev[index].preview);
+      }
+      return newImages;
+    });
   }, [setImages]);
+
+  useEffect(() => {
+    return () => {
+      safeImages.forEach(image => {
+        if (image.preview) {
+          URL.revokeObjectURL(image.preview);
+        }
+      });
+    };
+  }, [safeImages]);
 
   return (
     <Box>
@@ -183,52 +208,49 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
               ref={provided.innerRef}
               {...provided.droppableProps}
             >
-              {safeImages.map((image, index) => {
-                const id = `image-${index}`;
-                return (
-                  <Draggable 
-                    key={id}
-                    draggableId={id}
-                    index={index}
-                  >
-                    {(provided, snapshot) => (
-                      <DraggableItem
-                        ref={provided.innerRef}
-                        {...provided.draggableProps}
-                        {...provided.dragHandleProps}
+              {safeImages.map((image, index) => (
+                <Draggable 
+                  key={image.id}
+                  draggableId={image.id}
+                  index={index}
+                >
+                  {(provided, snapshot) => (
+                    <DraggableItem
+                      ref={provided.innerRef}
+                      {...provided.draggableProps}
+                      {...provided.dragHandleProps}
+                    >
+                      <DraggablePreview
+                        sx={{
+                          opacity: snapshot.isDragging ? 0.6 : 1,
+                          transform: snapshot.isDragging ? 'scale(1.05)' : 'scale(1)',
+                          transition: 'all 0.2s ease',
+                        }}
                       >
-                        <DraggablePreview
-                          sx={{
-                            opacity: snapshot.isDragging ? 0.6 : 1,
-                            transform: snapshot.isDragging ? 'scale(1.05)' : 'scale(1)',
-                            transition: 'all 0.2s ease',
-                          }}
-                        >
-                          <ImagePreview>
-                            <img 
-                              src={image} 
-                              alt={`preview ${index + 1}`}
-                            />
-                            <DeleteButton
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                e.preventDefault();
-                                removeImage(index);
-                              }}
-                              aria-label="remove image"
-                            >
-                              <CloseIcon />
-                            </DeleteButton>
-                          </ImagePreview>
-                          <SequenceNumber>
-                            {index + 1}
-                          </SequenceNumber>
-                        </DraggablePreview>
-                      </DraggableItem>
-                    )}
-                  </Draggable>
-                );
-              })}
+                        <ImagePreview>
+                          <img 
+                            src={image.preview} 
+                            alt={image.name || `preview ${index + 1}`}
+                          />
+                          <DeleteButton
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              e.preventDefault();
+                              removeImage(index);
+                            }}
+                            aria-label="remove image"
+                          >
+                            <CloseIcon />
+                          </DeleteButton>
+                        </ImagePreview>
+                        <SequenceNumber>
+                          {index + 1}
+                        </SequenceNumber>
+                      </DraggablePreview>
+                    </DraggableItem>
+                  )}
+                </Draggable>
+              ))}
               {provided.placeholder}
             </PreviewContainer>
           )}

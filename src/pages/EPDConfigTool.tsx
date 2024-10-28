@@ -18,7 +18,13 @@ import NetworkSettings from '../components/NetworkSettings';
 import ImageSettings from '../components/ImageSettings';
 import SDCardPathSettings from '../components/SDCardPathSettings';
 import ActionButtons from '../components/ActionButtons';
-import { checkSDCardEmpty, copyImage, createDirectory } from '../utils/fileSystem';
+import { 
+  checkSDCardEmpty, 
+  createConfigFile, 
+  createDirectory, 
+  copyImages,
+  createEmptyFile
+} from '../utils/fileSystem';
 
 // 自定義 Backdrop 樣式
 const StyledBackdrop = styled(Backdrop)(({ theme }) => ({
@@ -107,25 +113,54 @@ const EPDConfigurationTool: React.FC = () => {
       console.log('Checking SD card path:', sdCardPath);
       
       // 檢查目錄是否為空
-      const isEmpty = await checkSDCardEmpty(sdCardHandle, true);  // true 表示忽略系統檔案
+      const isEmpty = await checkSDCardEmpty(sdCardHandle, true);
       console.log('Is directory empty?', isEmpty);
       
       if (!isEmpty) {
-        throw new Error('SD Card 不是空的，請手動清空後再試一次');
+        throw new Error(t('common.error.sdCardNotEmpty'));
       }
   
-      // 建立目錄
-      const imageDir = await createDirectory(sdCardHandle, 'image/slideshow');
-      console.log('Created directory:', imageDir);
-
-      // ... 其餘代碼
+      // 1. 建立 show_info 空檔案
+      await createEmptyFile(sdCardHandle, 'show_info');
   
-      // 複製圖片
-      // await copyImage('image-url', imageDir, '1.png');
+      // 2. 建立 image/slideshow 目錄
+      const imageDir = await createDirectory(sdCardHandle, 'image/slideshow');
+      console.log('Created image directory:', imageDir);
+  
+      // 3. 複製並重新命名圖片
+      await copyImages(imageConfig.images, imageDir);
+      console.log('Copied images to slideshow directory');
+  
+      // 4. 建立 signage_configure.json
+      const configData = {
+        Customer: customer,
+        Mode: mode,
+        PowerMode: powerMode,
+        Interval: imageConfig.interval.toString(),
+        WifiSetting: `${networkConfig.ssid}${networkConfig.password ? ',' + networkConfig.password : ''}`,
+        TimeZone: timeZone,
+        SoftAP: "0",
+        Path: "/sdcard/image/slideshow",
+        ServerURL: serverURL,
+        PackageName: "",
+        ActivityName: "",
+        ...(networkConfig.ip ? {
+          IP_addr: networkConfig.ip,
+          Netmask: networkConfig.netmask,
+          Gateway: networkConfig.gateway,
+          DNS: networkConfig.dns
+        } : {})
+      };
+  
+      await createConfigFile(sdCardHandle, configData);
+      console.log('Created config file');
+  
+      // 成功訊息
+      console.log('All files generated successfully');
   
     } catch (error) {
       console.error('Error in handleGenerateConfig:', error);
-      // 這裡可以添加更友善的錯誤訊息顯示
+      // TODO: 顯示錯誤訊息給使用者
     }
   };
 

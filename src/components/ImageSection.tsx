@@ -5,10 +5,10 @@ import { useTranslation } from 'react-i18next';
 import HintMessage from './HintMessage';
 import ImageUploader from './ImageUploader';
 import CustomButton from './common/CustomButton';
-import { ImageConfig } from '../types/common';
+import { ModeType, ImageConfig } from '../types/common';
 
 interface ImageSectionProps {
-  mode: 'auto' | 'nas';
+  mode: ModeType;
   config: ImageConfig;
   onConfigChange: (updates: Partial<ImageConfig> | ((prev: ImageConfig) => ImageConfig)) => void;
   sx?: any;
@@ -16,23 +16,18 @@ interface ImageSectionProps {
 
 const ImageSection: React.FC<ImageSectionProps> = ({ 
   mode, 
-  config = {
-    size: '13.3',
-    rotate: 0,
-    interval: 180,
-    images: []
-  },
+  config,
   onConfigChange,
   sx 
 }) => {
   const { t } = useTranslation();
   const theme = useTheme();
 
-  const handleImagesChange = useCallback((newImages: string[] | ((prev: string[]) => string[])) => {
+  const handleImagesChange = useCallback((newImages: ImageFile[] | ((prev: ImageFile[]) => ImageFile[])) => {
     if (typeof newImages === 'function') {
       onConfigChange(prevConfig => ({
         ...prevConfig,
-        images: newImages(prevConfig.images || [])
+        images: newImages(prevConfig.images)
       }));
     } else {
       onConfigChange({ images: newImages });
@@ -57,7 +52,7 @@ const ImageSection: React.FC<ImageSectionProps> = ({
         </Grid>
         <Grid item xs={10}>
           <ImageUploader 
-            images={config.images || []}
+            images={config.images}
             setImages={handleImagesChange}
             maxImages={10}
             size={config.size}

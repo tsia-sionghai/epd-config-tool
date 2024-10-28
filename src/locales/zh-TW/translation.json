@@ -56,9 +56,15 @@
       "selectImage": "選擇圖片"
     },
     "status": {
-      "processing": "正在處理中，請稍候...",
-      "generatingConfig": "正在產生設定檔...",
-      "copyingImages": "正在複製圖片檔案..."
+      "processing": "處理中...",
+      "checkingSDCard": "檢查 SD 卡...",
+      "creatingFiles": "建立檔案...",
+      "creatingDirectory": "建立目錄...",
+      "copyingImages": "複製圖片...",
+      "creatingConfig": "產生設定檔..."
+    },
+    "success": {
+      "configGenerated": "已成功產生設定檔案"
     },
     "error": {
       "browserNotSupportedTitle": "瀏覽器不支援",
@@ -68,9 +74,6 @@
       "noSDCardSelected": "請先選擇 SD Card 路徑",
       "sdCardNotEmpty": "SD Card 不是空的，請手動清空後再試一次",
       "configGenerationFailed": "產生設定檔時發生錯誤"
-    },
-    "success": {
-      "configGenerated": "設定檔已成功產生"
     }
   },
   "mode": {

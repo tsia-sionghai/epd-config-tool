@@ -48,6 +48,47 @@ export const createDirectory = async (
   }
 };
 
+// 建立 signage_configure.json
+export const createConfigFile = async (
+  dirHandle: FileSystemDirectoryHandle,
+  config: {
+    Customer: string;
+    Mode: string;
+    PowerMode: string;
+    Interval: string;
+    WifiSetting: string;
+    TimeZone: string;
+    SoftAP: string;
+    Path: string;
+    ServerURL: string;
+    PackageName: string;
+    ActivityName: string;
+  }
+) => {
+  try {
+    const configContent = JSON.stringify(config, null, 2);
+    await writeFile(dirHandle, 'signage_configure.json', configContent);
+  } catch (error) {
+    console.error('Error creating config file:', error);
+    throw error;
+  }
+};
+
+// 新增建立空檔案的函數
+export const createEmptyFile = async (
+  dirHandle: FileSystemDirectoryHandle,
+  fileName: string
+): Promise<void> => {
+  try {
+    console.log(`Creating empty file: ${fileName}`);
+    await writeFile(dirHandle, fileName, '');
+    console.log(`Successfully created empty file: ${fileName}`);
+  } catch (error) {
+    console.error(`Error creating empty file ${fileName}:`, error);
+    throw error;
+  }
+};
+
 // 寫入檔案
 export const writeFile = async (
   dirHandle: FileSystemDirectoryHandle,
@@ -65,18 +106,29 @@ export const writeFile = async (
   }
 };
 
-// 複製圖片檔案
-export const copyImage = async (
-  sourceUrl: string,
-  targetDir: FileSystemDirectoryHandle,
-  newFileName: string
-): Promise<void> => {
+// 複製並重新命名圖片
+export const copyImages = async (
+  images: ImageFile[],
+  targetDir: FileSystemDirectoryHandle
+) => {
   try {
-    const response = await fetch(sourceUrl);
-    const blob = await response.blob();
-    await writeFile(targetDir, newFileName, blob);
+    for (const [index, image] of images.entries()) {
+      const newFileName = `${index + 1}.png`;
+      console.log(`Copying image ${newFileName}`);
+      
+      // 確保檔案存在
+      if (!image.file) {
+        console.error(`No file found for image at index ${index}`);
+        continue;
+      }
+
+      // 使用 arrayBuffer 來複製檔案
+      const blob = new Blob([await image.file.arrayBuffer()], { type: image.file.type });
+      await writeFile(targetDir, newFileName, blob);
+      console.log(`Successfully copied ${newFileName}`);
+    }
   } catch (error) {
-    console.error('Error copying image:', error);
+    console.error('Error copying images:', error);
     throw error;
   }
 };

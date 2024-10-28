@@ -73,7 +73,7 @@ const IntervalSelector: React.FC<IntervalSelectorProps> = ({
         <img src={increaseIcon} alt="Increase" width={32} height={32} />
       </StyledIconButton>
       <HintMessage
-        type="error"
+        type="info"
         message={t('common.hint.intervalMin')}
         containerSx={{ ml: 2 }}
         typographySx={{ color: theme.palette.text.primary }}

@@ -80,36 +80,38 @@ const SDCardPathSettings: React.FC<SDCardPathSettingsProps> = ({
 
   return (
     <PathSelectionContainer sx={{ pl: 1, pr: 1}}>
-      <Grid item xs={12}>
-        <Box sx={{ 
-          display: 'inline-flex', 
-          alignItems: 'center',
-          gap: 2,
-        }}>
-          <LabelWrapper>{t('common.label.sdCardPath')}</LabelWrapper>
-          <StyledTextField
-            variant="standard"
-            value={sdCardPath}
-            disabled
+      <Grid container spacing={2}>
+        <Grid item xs={12}>
+          <Box sx={{ 
+            display: 'inline-flex', 
+            alignItems: 'center',
+            gap: 2,
+          }}>
+            <LabelWrapper>{t('common.label.sdCardPath')}</LabelWrapper>
+            <StyledTextField
+              variant="standard"
+              value={sdCardPath}
+              disabled
+            />
+            <Button 
+              variant="basic"
+              onClick={handleSelectPath}
+              sx={{ 
+                minWidth: 'auto',
+                textWrap: 'nowrap',
+              }}
+            >
+              {t('common.button.selectPath')}
+            </Button>
+          </Box>
+        </Grid>
+        <Grid item xs={12}>
+          <HintMessage 
+            type="error"
+            message={t('common.hint.sdCardPathCheck')}
+            typographySx={{ color: 'text.primary' }}
           />
-          <Button 
-            variant="basic"
-            onClick={handleSelectPath}
-            sx={{ 
-              minWidth: 'auto',
-              textWrap: 'nowrap',
-            }}
-          >
-            {t('common.button.selectPath')}
-          </Button>
-        </Box>
-      </Grid>
-      <Grid item xs={12}>
-        <HintMessage 
-          type="error"
-          message={t('common.hint.sdCardPathCheck')}
-          typographySx={{ color: 'text.primary' }}
-        />
+        </Grid>
       </Grid>
     </PathSelectionContainer>
   );

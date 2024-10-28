@@ -9,7 +9,7 @@ export type HintType = 'info' | 'error' | 'warning';
 
 // 定義每種類型對應的顏色
 const typeColors: Record<HintType, string> = {
-  info: '#2196F3',    // 藍色
+  info: '#A2ABB3',    // 灰色 (藍色)
   error: '#FF0000',   // 紅色
   warning: '#FFA500'  // 橙色
 };
