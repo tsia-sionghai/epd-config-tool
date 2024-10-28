@@ -2,7 +2,8 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Alert, Box, Snackbar } from '@mui/material';
+import { Alert, Backdrop, Box, CircularProgress, Snackbar, Typography } from '@mui/material';
+import { styled } from '@mui/material/styles';  // 加入這行
 import { checkBrowserSupport } from '../utils/browserCheck';
 import {
   ModeType,
@@ -17,10 +18,24 @@ import NetworkSettings from '../components/NetworkSettings';
 import ImageSettings from '../components/ImageSettings';
 import SDCardPathSettings from '../components/SDCardPathSettings';
 import ActionButtons from '../components/ActionButtons';
+import { checkSDCardEmpty, copyImage, createDirectory } from '../utils/fileSystem';
+
+// 自定義 Backdrop 樣式
+const StyledBackdrop = styled(Backdrop)(({ theme }) => ({
+  zIndex: theme.zIndex.drawer + 1,
+  color: '#fff',
+  backgroundColor: 'rgba(0, 0, 0, 0.7)',
+  display: 'flex',
+  flexDirection: 'column',
+  gap: theme.spacing(2),
+}));
 
 const EPDConfigurationTool: React.FC = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const [sdCardHandle, setSdCardHandle] = useState<FileSystemDirectoryHandle | null>(null);
+  const [processingStatus, setProcessingStatus] = useState('');
+  const [isProcessing, setIsProcessing] = useState(false);
 
   useEffect(() => {
     // 檢查瀏覽器支援
@@ -83,8 +98,35 @@ const EPDConfigurationTool: React.FC = () => {
     }
   };
 
-  const handleGenerateConfig = () => {
-    console.log('Generating config...');
+  const handleGenerateConfig = async () => {
+    try {
+      if (!sdCardHandle) {
+        throw new Error(t('common.error.noSDCard'));
+      }
+  
+      console.log('Checking SD card path:', sdCardPath);
+      
+      // 檢查目錄是否為空
+      const isEmpty = await checkSDCardEmpty(sdCardHandle, true);  // true 表示忽略系統檔案
+      console.log('Is directory empty?', isEmpty);
+      
+      if (!isEmpty) {
+        throw new Error('SD Card 不是空的，請手動清空後再試一次');
+      }
+  
+      // 建立目錄
+      const imageDir = await createDirectory(sdCardHandle, 'image/slideshow');
+      console.log('Created directory:', imageDir);
+
+      // ... 其餘代碼
+  
+      // 複製圖片
+      // await copyImage('image-url', imageDir, '1.png');
+  
+    } catch (error) {
+      console.error('Error in handleGenerateConfig:', error);
+      // 這裡可以添加更友善的錯誤訊息顯示
+    }
   };
 
   return (
@@ -121,6 +163,7 @@ const EPDConfigurationTool: React.FC = () => {
       <SDCardPathSettings
         sdCardPath={sdCardPath}
         setSdCardPath={setSdCardPath}
+        onDirectorySelect={(handle) => setSdCardHandle(handle)}  // 新增這行
       />
 
       <ActionButtons
@@ -144,6 +187,14 @@ const EPDConfigurationTool: React.FC = () => {
           {t('common.error.browserNotSupported')}
         </Alert>
       </Snackbar>
+
+      {/* Processing Mask */}
+      <StyledBackdrop open={isProcessing}>
+        <CircularProgress color="inherit" size={60} />
+        <Typography variant="h6" component="div">
+          {processingStatus || t('common.status.processing')}
+        </Typography>
+      </StyledBackdrop>
     </Box>
   );
 };

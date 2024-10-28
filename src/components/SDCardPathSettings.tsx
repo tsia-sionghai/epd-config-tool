@@ -7,14 +7,18 @@ import HintMessage from './HintMessage';
 interface SDCardPathSettingsProps {
   sdCardPath: string;
   setSdCardPath: (path: string) => void;
+  onDirectorySelect: (handle: FileSystemDirectoryHandle) => void;
 }
 
 const StyledTextField = styled(TextField)(({ theme }) => ({
   '& .MuiInputBase-root': {
     backgroundColor: 'transparent',
-    padding: 0,
+    padding: '8px 12px',
     minWidth: '20px',
     width: 'fit-content',
+    height: '40px',
+    borderRadius: '20px',
+    border: `1px solid ${theme.palette.grey[500]}`, // 使用 darkGray (#A2ABB3)
     '&::before': {
       display: 'none',
     },
@@ -27,9 +31,13 @@ const StyledTextField = styled(TextField)(({ theme }) => ({
     '&.Mui-focused': {
       backgroundColor: 'transparent',
     },
+    '&.Mui-disabled': {
+      border: `1px solid ${theme.palette.grey[500]}`, // disabled 狀態下的 border 顏色
+    },
   },
   '& .MuiInputBase-input': {
     padding: 0,
+    height: '40px',
     color: theme.palette.text.primary,
     '&.Mui-disabled': {
       WebkitTextFillColor: theme.palette.text.primary,
@@ -50,6 +58,7 @@ const PathSelectionContainer = styled(Box)(({ theme }) => ({
 const SDCardPathSettings: React.FC<SDCardPathSettingsProps> = ({
   sdCardPath,
   setSdCardPath,
+  onDirectorySelect,
 }) => {
   const { t } = useTranslation();
 
@@ -57,11 +66,12 @@ const SDCardPathSettings: React.FC<SDCardPathSettingsProps> = ({
     try {
       if ('showDirectoryPicker' in window) {
         const dirHandle = await window.showDirectoryPicker({
-          mode: 'read',
+          mode: 'readwrite',  // 改為 readwrite 以確保有寫入權限
         });
         setSdCardPath(dirHandle.name);
+        onDirectorySelect(dirHandle);  // 新增這行
       } else {
-        alert('請使用 Chrome 瀏覽器以獲得完整功能支援');
+        alert(t('common.error.browserNotSupported'));
       }
     } catch (err) {
       console.error('Error selecting directory:', err);
@@ -81,11 +91,6 @@ const SDCardPathSettings: React.FC<SDCardPathSettingsProps> = ({
             variant="standard"
             value={sdCardPath}
             disabled
-            inputProps={{
-              style: {
-                cursor: 'default',
-              }
-            }}
           />
           <Button 
             variant="basic"
