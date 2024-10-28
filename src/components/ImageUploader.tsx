@@ -3,7 +3,14 @@ import React, { useCallback, useMemo } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { Box, Button, Typography, IconButton, styled } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
-import { DragDropContext, Droppable, Draggable, DropResult } from 'react-beautiful-dnd';
+import { 
+  DragDropContext, 
+  Droppable, 
+  Draggable,
+  DroppableProvided,
+  DraggableProvided,
+  DropResult 
+} from '@hello-pangea/dnd';
 import { useTranslation } from 'react-i18next';
 
 const DropzoneArea = styled(Box)(({ theme }) => ({
