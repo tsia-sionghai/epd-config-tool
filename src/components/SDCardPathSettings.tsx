@@ -3,11 +3,14 @@ import React from 'react';
 import { Box, Grid, TextField, Button, styled } from '@mui/material';
 import { useTranslation } from 'react-i18next';
 import HintMessage from './HintMessage';
+import { checkSDCardEmpty } from '../utils/fileSystem';
 
 interface SDCardPathSettingsProps {
   sdCardPath: string;
   setSdCardPath: (path: string) => void;
   onDirectorySelect: (handle: FileSystemDirectoryHandle) => void;
+  disabled?: boolean;
+  onError?: (message: string) => void;  // 新增錯誤處理函數
 }
 
 const StyledTextField = styled(TextField)(({ theme }) => ({
@@ -59,6 +62,8 @@ const SDCardPathSettings: React.FC<SDCardPathSettingsProps> = ({
   sdCardPath,
   setSdCardPath,
   onDirectorySelect,
+  disabled = false,
+  onError,
 }) => {
   const { t } = useTranslation();
 
@@ -66,12 +71,20 @@ const SDCardPathSettings: React.FC<SDCardPathSettingsProps> = ({
     try {
       if ('showDirectoryPicker' in window) {
         const dirHandle = await window.showDirectoryPicker({
-          mode: 'readwrite',  // 改為 readwrite 以確保有寫入權限
+          mode: 'readwrite',
         });
+
+        // 檢查目錄是否為空
+        const isEmpty = await checkSDCardEmpty(dirHandle, true);
+        if (!isEmpty) {
+          onError?.(t('common.error.sdCardNotEmpty'));
+          return;
+        }
+
         setSdCardPath(dirHandle.name);
-        onDirectorySelect(dirHandle);  // 新增這行
+        onDirectorySelect(dirHandle);
       } else {
-        alert(t('common.error.browserNotSupported'));
+        onError?.(t('common.error.browserNotSupported'));
       }
     } catch (err) {
       console.error('Error selecting directory:', err);
@@ -96,6 +109,7 @@ const SDCardPathSettings: React.FC<SDCardPathSettingsProps> = ({
             <Button 
               variant="basic"
               onClick={handleSelectPath}
+              disabled={disabled}  // 使用 disabled 屬性
               sx={{ 
                 minWidth: 'auto',
                 textWrap: 'nowrap',

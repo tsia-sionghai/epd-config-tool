@@ -1,15 +1,53 @@
 // src/components/BasicSettings.tsx
 import React from 'react';
-import { Grid, Paper, Typography, TextField } from '@mui/material';
+import { 
+  Paper, 
+  Grid, 
+  TextField, 
+  Typography,
+  FormHelperText, 
+} from '@mui/material';
+import { styled } from '@mui/material/styles';
+import ErrorIcon from '@mui/icons-material/Error';
+import { colors } from '../theme';  // 引入色彩常數
 import { useTranslation } from 'react-i18next';
+
 import { ModeType, PowerModeType, TimeZoneType } from '../types/common';
 import ModeSelector from './ModeSelector';
 import PowerModeSelector from './PowerModeSelector';
 import TimeZoneSelector from './TimeZoneSelector';
 
+// 自定義 TextField 樣式
+const StyledTextField = styled(TextField)(() => ({
+  '& .MuiOutlinedInput-root': {
+    '&.Mui-error': {
+      backgroundColor: colors.red20,  // 使用淺紅色背景
+      '& fieldset': {
+        borderColor: colors.red,  // 錯誤狀態的邊框顏色
+      },
+      '&:hover fieldset': {
+        borderColor: colors.red,
+      },
+      '&.Mui-focused fieldset': {
+        borderColor: colors.red,
+      },
+    },
+  },
+}));
+
+// 自定義錯誤訊息的樣式
+const ErrorMessage = styled('div')(({ theme }) => ({
+  display: 'flex',
+  alignItems: 'center',
+  gap: theme.spacing(0.5),
+  color: colors.red,  // 使用紅色
+  marginTop: theme.spacing(0.5),
+}));
+
 interface BasicSettingsProps {
   customer: string;
   setCustomer: (value: string) => void;
+  customerError?: string;
   mode: ModeType;
   setMode: (value: ModeType) => void;
   powerMode: PowerModeType;
@@ -21,6 +59,7 @@ interface BasicSettingsProps {
 const BasicSettings: React.FC<BasicSettingsProps> = ({
   customer,
   setCustomer,
+  customerError,
   mode,
   setMode,
   powerMode,
@@ -42,13 +81,20 @@ const BasicSettings: React.FC<BasicSettingsProps> = ({
             <Typography align="right">{t('common.label.customer')}</Typography>
           </Grid>
           <Grid item xs={10}>
-            <TextField
-              variant="outlined" 
-              fullWidth={true} 
+            <StyledTextField  // 使用自定義的 TextField
               value={customer}
+              placeholder={t('common.placeholder.enterCustomer')} 
               onChange={(e) => setCustomer(e.target.value)}
-              placeholder={t('common.placeholder.enterName')}
+              error={Boolean(customerError)}
+              fullWidth
+              size="small"
             />
+            {customerError && (
+              <ErrorMessage>
+                <ErrorIcon fontSize="small" />
+                <FormHelperText error>{customerError}</FormHelperText>
+              </ErrorMessage>
+            )}
           </Grid>
         </Grid>
 
@@ -57,7 +103,11 @@ const BasicSettings: React.FC<BasicSettingsProps> = ({
             <Typography align="right">{t('common.label.mode')}</Typography>
           </Grid>
           <Grid item xs={10}>
-            <ModeSelector value={mode} onChange={setMode} />
+            <ModeSelector 
+              value={mode} 
+              onChange={setMode} 
+              disabledModes={['nas']}  // 禁用 NAS 模式
+            />
           </Grid>
         </Grid>
 

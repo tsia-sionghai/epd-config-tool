@@ -65,7 +65,7 @@ const theme = createTheme({
       fontSize: 20,
       lineHeight: '32px',
       fontWeight: 400,
-      color: colors.brightPurple,
+      color: '##000000',
     },
     subtitle1: {
       fontSize: 16,
@@ -116,10 +116,6 @@ const theme = createTheme({
     
     // TextField 特定樣式
     MuiTextField: {
-      // defaultProps: {
-      //   variant: 'outlined',
-      //   fullWidth: true,
-      // },
       styleOverrides: {
         root: {
           '& .MuiOutlinedInput-root': {
@@ -149,10 +145,6 @@ const theme = createTheme({
 
     // Select 特定樣式
     MuiSelect: {
-      // defaultProps: {
-      //   variant: 'outlined',
-      //   fullWidth: false,
-      // },
       styleOverrides: {
         root: {
           backgroundColor: 'transparent',
