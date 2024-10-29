@@ -6,7 +6,11 @@ interface RotateSelectorProps {
   onChange: (value: number) => void;
 }
 
-const RotateButton = styled(Button)(({ theme, selected }) => ({
+interface RotateButtonProps {
+  selected?: boolean;
+}
+
+const RotateButton = styled(Button)<RotateButtonProps>(({ theme, selected }) => ({
   minWidth: '60px',
   height: '40px',
   borderRadius: '18px',

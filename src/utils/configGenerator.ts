@@ -1,10 +1,10 @@
 // src/utils/configGenerator.ts
-import { ImageConfig } from '../types/common';
+import { ModeType, PowerModeType, TimeZoneType, ImageConfig, NetworkConfig } from '../types/common';
 
 interface SignageConfig {
-  mode: 'auto' | 'cms' | 'nas';
-  powerMode: string;
-  timeZone: string;
+  mode: ModeType;
+  powerMode: PowerModeType;
+  timeZone: TimeZoneType;
   size: string;
   rotate: number;
   interval: number;
@@ -23,11 +23,11 @@ interface SignageConfig {
 }
 
 export const generateConfig = (
-  mode: string,
-  powerMode: string,
-  timeZone: string,
+  mode: ModeType,
+  powerMode: PowerModeType,
+  timeZone: TimeZoneType,
   imageConfig: ImageConfig,
-  networkConfig?: any
+  networkConfig?: NetworkConfig
 ): SignageConfig => {
   const baseConfig: SignageConfig = {
     mode,
@@ -43,7 +43,7 @@ export const generateConfig = (
   }
 
   if (mode === 'cms' || mode === 'nas') {
-    baseConfig.wifi = {
+    baseConfig.wifi = networkConfig ? {
       mode: networkConfig.wifi,
       ssid: networkConfig.ssid,
       password: networkConfig.password,
@@ -51,11 +51,11 @@ export const generateConfig = (
       netmask: networkConfig.netmask,
       gateway: networkConfig.gateway,
       dns: networkConfig.dns,
-    };
+    } : undefined;
 
-    if (mode === 'cms') {
+    if (mode === 'cms' && networkConfig?.serverURL) {
       baseConfig.serverURL = networkConfig.serverURL;
-    } else {
+    } else if (mode === 'nas' && networkConfig?.nasURL) {
       baseConfig.nasURL = networkConfig.nasURL;
     }
   }

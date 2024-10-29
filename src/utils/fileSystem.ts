@@ -1,4 +1,6 @@
 // src/utils/fileSystem.ts
+import { ImageFile } from "../types/common";
+
 // src/utils/fileSystem.ts
 export const checkSDCardEmpty = async (dirHandle: FileSystemDirectoryHandle, ignoreSystemFiles = true): Promise<boolean> => {
   try {

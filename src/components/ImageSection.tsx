@@ -1,11 +1,11 @@
 // src/components/ImageSection.tsx
 import React, { useCallback } from 'react';
-import { Grid, Typography, useTheme } from '@mui/material';
+import { Grid, useTheme } from '@mui/material';
 import { useTranslation } from 'react-i18next';
 import HintMessage from './HintMessage';
 import ImageUploader from './ImageUploader';
 import CustomButton from './common/CustomButton';
-import { ModeType, ImageConfig } from '../types/common';
+import { ModeType, ImageConfig, ImageFile } from '../types/common';
 
 interface ImageSectionProps {
   mode: ModeType;

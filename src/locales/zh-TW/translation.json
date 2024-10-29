@@ -1,7 +1,7 @@
 {
   "common": {
     "title": {
-      "main": "EPD Configuration Tool",
+      "main": "SD Tool",
       "basic": "基本設定",
       "auto": "單機操作設定",
       "cms": "CMS控制設定",

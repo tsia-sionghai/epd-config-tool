@@ -1,6 +1,6 @@
 // src/utils/modeHelpers.ts
 import { ModeType } from '../types/common';
-import { TFunction } from 'react-i18next';
+import { TFunction } from 'i18next';
 
 export const getModeTitle = (mode: ModeType, t: TFunction): string => {
   switch (mode) {
