@@ -16,10 +16,11 @@ interface ModeSelectorProps {
   disabledModes?: ModeType[];  // 新增禁用模式的陣列
 }
 
+// src/components/ModeSelector.tsx
 const ModeSelector: React.FC<ModeSelectorProps> = ({ 
   value, 
   onChange, 
-  disabledModes = [],  // 預設為空陣列
+  disabledModes = [], 
 }) => {
   const { t } = useTranslation();
   
@@ -30,10 +31,10 @@ const ModeSelector: React.FC<ModeSelectorProps> = ({
           selected={value === 'auto'}
           onClick={() => onChange('auto')}
           icon={<AutoModeIcon />}
-          description="直接於本機端進行圖片輪播。"
+          description={t('mode.auto.description')}
           disabled={disabledModes.includes('auto')}
         >
-          單機操作 (離線模式)
+          {t('mode.auto.title')}
         </SelectableButton>
       </Grid>
       
@@ -42,10 +43,10 @@ const ModeSelector: React.FC<ModeSelectorProps> = ({
           selected={value === 'cms'}
           onClick={() => onChange('cms')}
           icon={<CMSModeIcon />}
-          description="透過內容控制系統(CMS)來進行控制及換圖。"
+          description={t('mode.cms.description')}
           disabled={disabledModes.includes('cms')}
         >
-          CMS控制 (連線模式)
+          {t('mode.cms.title')}
         </SelectableButton>
       </Grid>
       
@@ -55,15 +56,15 @@ const ModeSelector: React.FC<ModeSelectorProps> = ({
           placement="top"
           arrow
         >
-          <span>  {/* 使用 span 包裹是因為 Tooltip 不能直接包裹 disabled 的按鈕 */}
+          <span>
             <SelectableButton
               selected={value === 'nas'}
               onClick={() => onChange('nas')}
               icon={<NASModeIcon />}
-              description="透過NAS進行換圖。"
-              disabled={disabledModes.includes('nas')}  // NAS 按鈕會被禁用
+              description={t('mode.nas.description')}
+              disabled={disabledModes.includes('nas')}
             >
-              NAS (連線模式)
+              {t('mode.nas.title')}
             </SelectableButton>
           </span>
         </Tooltip>

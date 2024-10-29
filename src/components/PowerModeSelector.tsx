@@ -8,6 +8,7 @@ import {
   SleepModeIcon, 
   NormalModeIcon 
 } from './icons/PowerModeIcons';
+import { useTranslation } from 'react-i18next';
 
 interface PowerModeSelectorProps {
   value: PowerModeType;
@@ -15,6 +16,8 @@ interface PowerModeSelectorProps {
 }
 
 const PowerModeSelector: React.FC<PowerModeSelectorProps> = ({ value, onChange }) => {
+  const { t } = useTranslation();
+
   return (
     <Grid container spacing={2}>
       <Grid item xs={4}>
@@ -22,9 +25,9 @@ const PowerModeSelector: React.FC<PowerModeSelectorProps> = ({ value, onChange }
           selected={value === 'off'}
           onClick={() => onChange('off')}
           icon={<OffModeIcon />}
-          description="畫面刷新後，機台將會關機。"
+          description={t('powerMode.off.description')}
         >
-          Off Mode
+          {t('powerMode.off.title')}
         </SelectableButton>
       </Grid>
       
@@ -33,9 +36,9 @@ const PowerModeSelector: React.FC<PowerModeSelectorProps> = ({ value, onChange }
           selected={value === 'hibernation'}
           onClick={() => onChange('hibernation')}
           icon={<SleepModeIcon />}
-          description="畫面刷新後，機台將會進入睡眠模式。"
+          description={t('powerMode.hibernation.description')}
         >
-          Sleep Mode
+          {t('powerMode.hibernation.title')}
         </SelectableButton>
       </Grid>
       
@@ -44,9 +47,9 @@ const PowerModeSelector: React.FC<PowerModeSelectorProps> = ({ value, onChange }
           selected={value === 'normal'}
           onClick={() => onChange('normal')}
           icon={<NormalModeIcon />}
-          description="畫面刷新後，機台將會持續醒著。"
+          description={t('powerMode.normal.description')}
         >
-          Normal Mode
+          {t('powerMode.normal.title')}
         </SelectableButton>
       </Grid>
     </Grid>
