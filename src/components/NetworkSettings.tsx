@@ -1,18 +1,38 @@
 // src/components/NetworkSettings.tsx
-import React, { useState } from 'react';
-import { Grid, Paper, Typography, TextField } from '@mui/material';
+import React from 'react';
+import { Grid, Paper, Typography } from '@mui/material';
 import { useTranslation } from 'react-i18next';
 import { ModeType, NetworkConfig } from '../types/common';
 import WifiSelector from './WifiSelector';
+import FormField from './common/FormField';
+import SelectorField from './common/SelectorField';
 
 interface NetworkSettingsProps {
   mode: ModeType;
   config: NetworkConfig;
   onConfigChange: (config: Partial<NetworkConfig>) => void;
-  serverURL?: string;
-  setServerURL?: (url: string) => void;
+  serverURL: string;
+  setServerURL: (url: string) => void;
   nasURL?: string;
   setNasURL?: (url: string) => void;
+  errors?: {
+    ssid?: string;
+    password?: string;
+    ip?: string;
+    netmask?: string;
+    gateway?: string;
+    dns?: string;
+    serverURL?: string;
+  };
+  fieldRefs?: {
+    ssid: React.RefObject<HTMLInputElement>;
+    password: React.RefObject<HTMLInputElement>;
+    ip: React.RefObject<HTMLInputElement>;
+    netmask: React.RefObject<HTMLInputElement>;
+    gateway: React.RefObject<HTMLInputElement>;
+    dns: React.RefObject<HTMLInputElement>;
+    serverURL: React.RefObject<HTMLInputElement>;
+  };
 }
 
 const NetworkSettings: React.FC<NetworkSettingsProps> = ({
@@ -23,16 +43,16 @@ const NetworkSettings: React.FC<NetworkSettingsProps> = ({
   setServerURL,
   nasURL,
   setNasURL,
+  errors = {},
+  fieldRefs = {},
 }) => {
   const { t } = useTranslation();
-  const [ssid, setSSID] = useState('');
-  const [password, setPassword] = useState('');
-  const [ip, setIP] = useState('');
-  const [netmask, setNetmask] = useState('');
-  const [gateway, setGateway] = useState('');
-  const [dns, setDNS] = useState('');
 
   if (mode === 'auto') return null;
+
+  const handleFieldChange = (field: keyof NetworkConfig, value: string) => {
+    onConfigChange({ ...config, [field]: value });
+  };
 
   return (
     <Paper sx={{ p: 3, mb: 2 }}>
@@ -43,148 +63,97 @@ const NetworkSettings: React.FC<NetworkSettingsProps> = ({
           </Typography>
         </Grid>
 
-        <Grid item container alignItems="center" spacing={2}>
-          <Grid item xs={2}>
-            <Typography align="right">{t('common.label.wifiSetting')}</Typography>
-          </Grid>
-          <Grid item xs={10}>
+        <Grid item xs={12}>
+          <SelectorField label={t('common.label.wifiSetting')}>
             <WifiSelector
               value={config.wifi}
-              onChange={(value) => onConfigChange({ wifi: value })}
+              onChange={(value) => onConfigChange({ ...config, wifi: value })}
             />
-          </Grid>
+          </SelectorField>
         </Grid>
 
-        {/* Network settings fields */}
-        <Grid item container alignItems="center" spacing={2}>
-          <Grid item xs={2}>
-            <Typography align="right">{t('common.label.ssid')}</Typography>
-          </Grid>
-          <Grid item xs={10}>
-            <TextField 
-              variant="outlined"
-              fullWidth={true} 
-              value={ssid} 
-              onChange={(e) => setSSID(e.target.value)}
-              placeholder={t('common.placeholder.ssid')}
-            />
-          </Grid>
+        <Grid item xs={12}>
+          <FormField
+            label={t('common.label.ssid')}
+            value={config.ssid}
+            onChange={(value) => handleFieldChange('ssid', value)}
+            error={errors.ssid}
+            placeholder={t('common.placeholder.ssid')}
+            inputRef={fieldRefs.ssid}
+          />
         </Grid>
 
         {(config.wifi === 'wpa2Personal' || config.wifi === 'staticIP') && (
-          <>
-            <Grid item container alignItems="center" spacing={2}>
-              <Grid item xs={2}>
-                <Typography align="right">{t('common.label.password')}</Typography>
-              </Grid>
-              <Grid item xs={10}>
-                <TextField 
-                  variant="outlined"
-                  fullWidth={true}  
-                  value={password} 
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder={t('common.placeholder.password')}
-                />
-              </Grid>
-            </Grid>
-          </>
+          <Grid item xs={12}>
+            <FormField
+              label={t('common.label.password')}
+              value={config.password}
+              onChange={(value) => handleFieldChange('password', value)}
+              error={errors.password}
+              placeholder={t('common.placeholder.password')}
+              inputRef={fieldRefs.password}
+            />
+          </Grid>
         )}
 
         {config.wifi === 'staticIP' && (
           <>
-            <Grid item container alignItems="center" spacing={2}>
-              <Grid item xs={2}>
-                <Typography align="right">{t('common.label.ip')}</Typography>
-              </Grid>
-              <Grid item xs={10}>
-                <TextField 
-                  variant="outlined"
-                  fullWidth={true}  
-                  value={ip} 
-                  onChange={(e) => setIP(e.target.value)}
-                  placeholder={t('common.placeholder.ip')}
-                />
-              </Grid>
+            <Grid item xs={12}>
+              <FormField
+                label={t('common.label.ip')}
+                value={config.ip}
+                onChange={(value) => handleFieldChange('ip', value)}
+                error={errors.ip}
+                placeholder={t('common.placeholder.ip')}
+                inputRef={fieldRefs.ip}
+              />
             </Grid>
 
-            <Grid item container alignItems="center" spacing={2}>
-              <Grid item xs={2}>
-                <Typography align="right">{t('common.label.netmask')}</Typography>
-              </Grid>
-              <Grid item xs={10}>
-                <TextField 
-                  variant="outlined"
-                  fullWidth={true}  
-                  value={netmask} 
-                  onChange={(e) => setNetmask(e.target.value)}
-                  placeholder={t('common.placeholder.netmask')}
-                />
-              </Grid>
+            <Grid item xs={12}>
+              <FormField
+                label={t('common.label.netmask')}
+                value={config.netmask}
+                onChange={(value) => handleFieldChange('netmask', value)}
+                error={errors.netmask}
+                placeholder={t('common.placeholder.netmask')}
+                inputRef={fieldRefs.netmask}
+              />
             </Grid>
 
-            <Grid item container alignItems="center" spacing={2}>
-              <Grid item xs={2}>
-                <Typography align="right">{t('common.label.gateway')}</Typography>
-              </Grid>
-              <Grid item xs={10}>
-                <TextField 
-                  variant="outlined"
-                  fullWidth={true}  
-                  value={gateway} 
-                  onChange={(e) => setGateway(e.target.value)}
-                  placeholder={t('common.placeholder.gateway')}
-                />
-              </Grid>
+            <Grid item xs={12}>
+              <FormField
+                label={t('common.label.gateway')}
+                value={config.gateway}
+                onChange={(value) => handleFieldChange('gateway', value)}
+                error={errors.gateway}
+                placeholder={t('common.placeholder.gateway')}
+                inputRef={fieldRefs.gateway}
+              />
             </Grid>
 
-            <Grid item container alignItems="center" spacing={2}>
-              <Grid item xs={2}>
-                <Typography align="right">{t('common.label.dns')}</Typography>
-              </Grid>
-              <Grid item xs={10}>
-                <TextField 
-                  variant="outlined"
-                  fullWidth={true}  
-                  value={dns} 
-                  onChange={(e) => setDNS(e.target.value)}
-                  placeholder={t('common.placeholder.dns')}
-                />
-              </Grid>
+            <Grid item xs={12}>
+              <FormField
+                label={t('common.label.dns')}
+                value={config.dns}
+                onChange={(value) => handleFieldChange('dns', value)}
+                error={errors.dns}
+                placeholder={t('common.placeholder.dns')}
+                inputRef={fieldRefs.dns}
+              />
             </Grid>
           </>
         )}
 
-        {mode === 'cms' && serverURL !== undefined && setServerURL && (
-          <Grid item container alignItems="center" spacing={2}>
-            <Grid item xs={2}>
-              <Typography align="right">{t('common.label.serverURL')}</Typography>
-            </Grid>
-            <Grid item xs={10}>
-              <TextField
-                variant="outlined"
-                fullWidth={true} 
-                value={serverURL}
-                onChange={(e) => setServerURL(e.target.value)}
-                placeholder={t('common.placeholder.serverURL')}
-              />
-            </Grid>
-          </Grid>
-        )}
-
-        {mode === 'nas' && nasURL !== undefined && setNasURL && (
-          <Grid item container alignItems="center" spacing={2}>
-            <Grid item xs={2}>
-              <Typography align="right">{t('common.label.nasURL')}</Typography>
-            </Grid>
-            <Grid item xs={10}>
-              <TextField
-                variant="outlined"
-                fullWidth={true} 
-                value={nasURL}
-                onChange={(e) => setNasURL(e.target.value)}
-                placeholder={t('common.placeholder.nasURL')}
-              />
-            </Grid>
+        {mode === 'cms' && (
+          <Grid item xs={12}>
+            <FormField
+              label={t('common.label.serverURL')}
+              value={serverURL}
+              onChange={setServerURL}
+              error={errors.serverURL}
+              placeholder={t('common.placeholder.serverURL')}
+              inputRef={fieldRefs.serverURL}
+            />
           </Grid>
         )}
       </Grid>

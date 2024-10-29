@@ -92,7 +92,7 @@ const SDCardPathSettings: React.FC<SDCardPathSettingsProps> = ({
   };
 
   return (
-    <PathSelectionContainer sx={{ pl: 1, pr: 1}}>
+    <PathSelectionContainer sx={{ pt: 2, pl: 1, pr: 1}}>
       <Grid container spacing={2}>
         <Grid item xs={12}>
           <Box sx={{ 

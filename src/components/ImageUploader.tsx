@@ -188,7 +188,7 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
     <Box>
       <DropzoneArea {...getRootProps()}>
         <input {...getInputProps()} />
-        <Typography>
+        <Typography sx={{ backgroundColor: 'transparent' }}>
           {t('common.placeholder.dragOrSelect')}
           <Button 
             variant="basic" 

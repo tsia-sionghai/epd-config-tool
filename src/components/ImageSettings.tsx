@@ -7,6 +7,7 @@ import SizeSelector from './SizeSelector';
 import RotateSelector from './RotateSelector';
 import IntervalSelector from './IntervalSelector';
 import ImageSection from './ImageSection';
+import SelectorField from './common/SelectorField';
 
 interface ImageSettingsProps {
   mode: ModeType;
@@ -37,49 +38,44 @@ const ImageSettings: React.FC<ImageSettingsProps> = ({
               </Typography>
             </Grid>
 
-            <Grid item container alignItems="center" spacing={2}>
-              <Grid item xs={2}>
-                <Typography align="right">{t('common.label.size')}</Typography>
-              </Grid>
-              <Grid item xs={10}>
+            <Grid item xs={12}>
+              <SelectorField label={t('common.label.size')}>
                 <SizeSelector
                   value={config.size}
                   onChange={(size) => onConfigChange({ size })}
                 />
-              </Grid>
+              </SelectorField>
             </Grid>
 
-            <Grid item container alignItems="center" spacing={2}>
-              <Grid item xs={2}>
-                <Typography align="right">{t('common.label.rotate')}</Typography>
-              </Grid>
-              <Grid item xs={10}>
+            <Grid item xs={12}>
+              <SelectorField label={t('common.label.rotate')}>
                 <RotateSelector
                   value={config.rotate}
                   onChange={(rotate) => onConfigChange({ rotate })}
                 />
-              </Grid>
+              </SelectorField>
             </Grid>
 
-            <Grid item container alignItems="center" spacing={2}>
-              <Grid item xs={2}>
-                <Typography align="right">{t('common.label.interval')}</Typography>
-              </Grid>
-              <Grid item xs={10}>
+            <Grid item xs={12}>
+              <SelectorField label={t('common.label.interval')}>
                 <IntervalSelector
                   value={config.interval}
                   onChange={(interval) => onConfigChange({ interval })}
                   min={180}
                   max={3600}
                 />
-              </Grid>
+              </SelectorField>
             </Grid>
 
-            <ImageSection
-              mode={mode}
-              config={config}
-              onConfigChange={onConfigChange}
-            />
+            <Grid item xs={12}>
+              <SelectorField label={t('common.label.selectImage')}>
+                <ImageSection
+                  mode={mode}
+                  config={config}
+                  onConfigChange={onConfigChange}
+                />
+              </SelectorField>
+            </Grid>
           </Grid>
         </Paper>
       )}
