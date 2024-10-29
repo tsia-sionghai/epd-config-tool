@@ -76,6 +76,8 @@
       "customerRequired": "請輸入客戶名稱",
       "noSDCardSelected": "請先選擇 SD 卡",
       "sdCardNotEmpty": "SD 卡不是空的，請手動清空後再試一次",
+      "noImagesSelected": "請至少選擇一張圖片",
+      "requiredFields": "請填寫以下必填欄位：{{fields}}",
       "generateConfigFailed": "產生設定檔案失敗"
     }
   },

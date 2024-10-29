@@ -1,29 +1,38 @@
 // src/utils/fileSystem.ts
-export const checkSDCardEmpty = async (
-  dirHandle: FileSystemDirectoryHandle,
-  ignoreSystemFiles = true
-): Promise<boolean> => {
+// src/utils/fileSystem.ts
+export const checkSDCardEmpty = async (dirHandle: FileSystemDirectoryHandle, ignoreSystemFiles = true): Promise<boolean> => {
   try {
+    console.log('Starting to check directory:', dirHandle.name);
+
+    // 獲取目錄內容
     const entries = dirHandle.values();
     
+    // 遍歷所有檔案
     for await (const entry of entries) {
-      // 忽略 macOS 的系統檔案
+      // 忽略系統檔案
       if (ignoreSystemFiles && (
-        entry.name.startsWith('.') ||
-        entry.name === '.DS_Store' ||
-        entry.name === 'Thumbs.db'
+        entry.name.startsWith('.') ||       // 隱藏檔案
+        entry.name === '.DS_Store' ||       // macOS 系統檔案
+        entry.name === 'Thumbs.db' ||       // Windows 系統檔案
+        entry.name === '.Spotlight-V100' || // macOS Spotlight 索引
+        entry.name === '.Trashes' ||        // macOS 垃圾桶
+        entry.name === '.fseventsd'         // macOS 檔案系統事件
       )) {
         console.log('Ignoring system file:', entry.name);
         continue;
       }
-      
+
+      // 如果找到非系統檔案
       console.log('Found non-system file:', entry.name);
-      return false; // 找到非系統檔案，返回 false
+      return false;
     }
-    
-    return true; // 沒有找到任何非系統檔案
+
+    // 如果遍歷完成沒有找到非系統檔案，表示目錄為空
+    console.log('Directory is empty (excluding system files)');
+    return true;
+
   } catch (error) {
-    console.error('Error checking SD card:', error);
+    console.error('Error checking directory:', error);
     throw error;
   }
 };

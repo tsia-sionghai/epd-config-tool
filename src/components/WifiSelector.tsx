@@ -20,7 +20,7 @@ const WifiSelector: React.FC<WifiSelectorProps> = ({ value, onChange }) => {
       onChange={(e) => onChange(e.target.value as WifiType)}
     >
       <MenuItem value="open">Open</MenuItem>
-      <MenuItem value="wpa2Personal">WPA2 personal</MenuItem>
+      <MenuItem value="wpa2Personal">WPA2 Personal</MenuItem>
       <MenuItem value="staticIP">Static IP</MenuItem>
     </Select>
   );
