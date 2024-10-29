@@ -9,6 +9,24 @@ const BrowserNote = styled(Typography)(({ theme }) => ({
   color: theme.palette.primary.dark,
 }));
 
+const StyledAlert = styled(Alert)(({ theme }) => ({
+  padding: 0,
+  backgroundColor: 'transparent',
+  alignItems: 'flex-start',  // 改善對齊
+  '& .MuiAlert-icon': {
+    padding: 0,
+    marginRight: '4px',
+    marginTop: '5px',  // 微調圖示垂直位置
+    '& svg': {
+      width: 14,
+      height: 14,
+    }
+  },
+  '& .MuiAlert-message': {
+    padding: 0,
+  }
+}));
+
 const PageHeader: React.FC = () => {
   const { t } = useTranslation();
 
@@ -28,17 +46,7 @@ const PageHeader: React.FC = () => {
           <Typography variant="h6" component="h6" sx={{ mb: 0, fontWeight: 'bold' }}>
             {t('common.title.main')}
           </Typography>
-          <Alert 
-            severity="info" 
-            sx={{ 
-              p: 0, 
-              bgcolor: 'transparent', 
-              fontSize: 0.75,
-              '& .MuiAlert-icon': {  // 添加這個
-                marginRight: '4px',  // 或是更小的值
-              },
-            }}
-          >
+          <StyledAlert severity="info">
             <BrowserNote>
               <Trans
                 i18nKey="common.note.browserSupport"
@@ -47,7 +55,7 @@ const PageHeader: React.FC = () => {
                 }}
               />
             </BrowserNote>
-          </Alert>
+          </StyledAlert>
         </Box>
       </Box>
     </Box>
