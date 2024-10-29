@@ -16,10 +16,10 @@ const StyledAlert = styled(Alert)(({ theme }) => ({
   '& .MuiAlert-icon': {
     padding: 0,
     marginRight: '4px',
-    marginTop: '5px',  // 微調圖示垂直位置
+    marginTop: '3px',  // 微調圖示垂直位置
     '& svg': {
-      width: 14,
-      height: 14,
+      width: 18,
+      height: 18,
     }
   },
   '& .MuiAlert-message': {
