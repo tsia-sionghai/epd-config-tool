@@ -47,9 +47,6 @@ const ImageSection: React.FC<ImageSectionProps> = ({
         spacing={2}
         sx={sx}
       >
-        {/* <Grid item xs={2}>
-          <Typography align="right">{t('common.label.selectImage')}</Typography>
-        </Grid> */}
         <Grid item xs={12}>
           <ImageUploader 
             images={config.images}

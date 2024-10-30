@@ -1,6 +1,6 @@
 // src/components/common/SelectorField.tsx
 import React from 'react';
-import { Grid, Typography } from '@mui/material';
+import { Grid, Typography, GridProps } from '@mui/material';
 import { styled } from '@mui/material/styles';
 
 const LabelContainer = styled(Grid)({
@@ -19,17 +19,22 @@ const LabelText = styled(Typography)({
 interface SelectorFieldProps {
   label: string;
   children: React.ReactNode;
+  verticalAlign?: 'flex-start' | 'center';  // 修改為使用 flex 的對齊值
+  containerProps?: Partial<GridProps>;
 }
 
 const SelectorField: React.FC<SelectorFieldProps> = ({
   label,
-  children
+  children,
+  verticalAlign = 'center',
+  containerProps
 }) => {
   return (
     <Grid 
       container 
-      alignItems="center"  // 添加這個屬性
+      alignItems={verticalAlign}  // 這裡使用 flex-start 而不是 top
       spacing={0}
+      {...containerProps}
     >
       <LabelContainer item xs={2}>
         <LabelText>{label}</LabelText>

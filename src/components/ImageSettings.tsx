@@ -8,6 +8,7 @@ import RotateSelector from './RotateSelector';
 import IntervalSelector from './IntervalSelector';
 import ImageSection from './ImageSection';
 import SelectorField from './common/SelectorField';
+import FormField from './common/FormField';
 
 interface ImageSettingsProps {
   mode: ModeType;
@@ -68,7 +69,7 @@ const ImageSettings: React.FC<ImageSettingsProps> = ({
             </Grid>
 
             <Grid item xs={12}>
-              <SelectorField label={t('common.label.selectImage')}>
+              <SelectorField label={t('common.label.selectImage')} verticalAlign="flex-start">
                 <ImageSection
                   mode={mode}
                   config={config}
