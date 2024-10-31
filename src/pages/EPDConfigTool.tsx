@@ -29,7 +29,8 @@ import {
   createDirectory, 
   copyImages,
   createEmptyFile,
-  checkSDCardEmpty} from '../utils/fileSystem';
+  checkSDCardEmpty,
+  cleanupSDCard} from '../utils/fileSystem';
 import { uploadImageToBin } from '../services/api';
 
 // Styled Backdrop
@@ -105,17 +106,45 @@ const EPDConfigurationTool: React.FC = () => {
       size 
     });
   
+    // 先複製並重命名所有圖片，保留原始副檔名
+    setStatus(t('common.status.copyingImages'));
     for (const [index, image] of images.entries()) {
+      // 取得原始檔案的副檔名
+      const extension = image.name.split('.').pop() || '';
+      const newFileName = `${(index + 1).toString()}.${extension}`;
+      await copyImages([{ ...image, name: newFileName, order: index }], imageDir);
+      console.log(`Copied and renamed image to ${newFileName}`);
+    }
+  
+    // 然後使用重命名後的圖片進行轉換
+    for (let index = 0; index < images.length; index++) {
       try {
+        // 使用原始圖片的副檔名
+        const originalImage = images[index];
+        const extension = originalImage.name.split('.').pop() || '';
+        const newFileName = `${(index + 1).toString()}.${extension}`;
+  
         const statusText = t('common.status.uploadingImage', { 
           current: index + 1, 
           total: images.length,
-          name: image.name 
+          name: newFileName 
         });
         console.log(statusText);
         setStatus(statusText);
   
-        const result = await uploadImageToBin(image.file, size);
+        // 取得重命名後的圖片檔案
+        const fileHandle = await imageDir.getFileHandle(newFileName);
+        const file = await fileHandle.getFile();
+  
+        // 記錄檔案資訊以便偵錯
+        console.log('Uploading file:', {
+          name: file.name,
+          type: file.type,
+          size: file.size,
+          lastModified: file.lastModified
+        });
+  
+        const result = await uploadImageToBin(file, size);
         console.log('Upload result:', result);
   
         if (result.bin_url && result.bin_url.length > 0) {
@@ -135,18 +164,14 @@ const EPDConfigurationTool: React.FC = () => {
             }
             
             const blob = await response.blob();
-            const fileName = url.split('/').pop() || `${index + 1}.bin`;
+            const fileName = url.split('/').pop() || `${(index + 1).toString()}.bin`;
             await writeFile(imageDir, fileName, blob);
             console.log('Saved bin file:', fileName);
           }
         }
   
-        // 複製原始圖片
-        await copyImages([{ ...image, order: index }], imageDir);
-        console.log(`Copied original image ${index + 1}.png`);
-  
       } catch (error) {
-        console.error(`Error processing image ${image.name}:`, error);
+        console.error(`Error processing image ${(index + 1).toString()}:`, error);
         throw error;
       }
     }
@@ -156,13 +181,13 @@ const EPDConfigurationTool: React.FC = () => {
     try {
       // 清除之前的錯誤訊息
       setCustomerError('');
-
+  
       // 1. 檢查共同必填項目: Customer
       if (!customer.trim()) {
         setCustomerError(t('common.error.customerRequired'));
         return;
       }
-
+  
       // 2. 檢查 SD Card 是否已選擇
       if (!sdCardHandle) {
         setError({
@@ -173,110 +198,123 @@ const EPDConfigurationTool: React.FC = () => {
       }
 
       // 開始處理，顯示 Backdrop
-      setIsProcessing(true);
+      setIsProcessing(true);  // 移到這裡，在所有前置檢查之後，實際操作之前
 
-      // 3. 檢查模式相關的必填欄位
+      // 3. 檢查 SD Card 是否為空
+      setProcessingStatus(t('common.status.checkingSDCard'));
+      const isEmpty = await checkSDCardEmpty(sdCardHandle, true);
+      if (!isEmpty) {
+        throw new Error(t('common.error.sdCardNotEmpty'));
+      }
+  
+      // 4. 檢查模式相關的必填欄位
       if (mode === 'auto') {
         if (!imageConfig.images.length) {
-          throw new Error(t('common.error.noImagesSelected'));
+          setError({
+            show: true,
+            message: t('common.error.noImagesSelected')
+          });
+          return;
         }
       } else if (mode === 'cms') {
         const errors = [];
         
         if (!networkConfig.ssid.trim()) errors.push('SSID');
         if (!serverURL.trim()) errors.push('CMS Server URL');
-
+  
         if (['wpa2Personal', 'staticIP'].includes(networkConfig.wifi) && 
             !networkConfig.password.trim()) {
           errors.push('WiFi Password');
         }
-
+  
         if (networkConfig.wifi === 'staticIP') {
           if (!networkConfig.ip.trim()) errors.push('IP Address');
           if (!networkConfig.netmask.trim()) errors.push('Netmask');
           if (!networkConfig.gateway.trim()) errors.push('Gateway');
           if (!networkConfig.dns.trim()) errors.push('DNS');
         }
-
+  
         if (errors.length > 0) {
           throw new Error(t('common.error.requiredFields', { 
             fields: errors.join(', ') 
           }));
         }
       }
-
-      // 4. 檢查 SD Card 是否為空
-      setProcessingStatus(t('common.status.checkingSDCard'));
-      const isEmpty = await checkSDCardEmpty(sdCardHandle, true);
-      if (!isEmpty) {
-        throw new Error(t('common.error.sdCardNotEmpty'));
-      }
-
-      // 5. 建立必要檔案和目錄
-      setProcessingStatus(t('common.status.creatingFiles'));
-      await createEmptyFile(sdCardHandle, 'show_info');
-
-      // 6. 處理圖片（如果是 auto 模式）
-      if (mode === 'auto' || mode === 'nas') {
-        setProcessingStatus(t('common.status.creatingDirectory'));
-        console.log('Creating image directory...');
-        const imageDir = await createDirectory(sdCardHandle, 'image/slideshow');
-        console.log('Image directory created');
-    
-        console.log('Starting image processing...');
-        await processImages(
-          imageConfig.images,
-          imageDir,
-          imageConfig.size,
-          (status) => {
-            console.log('Status update:', status);
-            setProcessingStatus(status);
-          }
-        );
-        console.log('Image processing completed');
-      }
-
-      // 7. 建立設定檔
-      setProcessingStatus(t('common.status.creatingConfig'));
-      const configData = {
-        Customer: customer,
-        Mode: mode,
-        PowerMode: powerMode,
-        TimeZone: timeZone,
-        SoftAP: "0",
-        Path: "/sdcard/image/slideshow",
-        
-        ...(mode === 'cms' ? {
-          Interval: "180",
-          WifiSetting: `${networkConfig.ssid}${networkConfig.password ? ',' + networkConfig.password : ''}`,
-          ServerURL: serverURL,
-          ...(networkConfig.wifi === 'staticIP' ? {
-            IP_addr: networkConfig.ip,
-            Netmask: networkConfig.netmask,
-            Gateway: networkConfig.gateway,
-            DNS: networkConfig.dns
-          } : {})
-        } : {
-          Interval: imageConfig.interval.toString(),
-          WifiSetting: "",
-          ServerURL: "",
-        }),
-
-        PackageName: "",
-        ActivityName: "",
-      };
+  
+      try {
+        // 5. 建立必要檔案和目錄
+        setProcessingStatus(t('common.status.creatingFiles'));
+        await createEmptyFile(sdCardHandle, 'show_info');
+  
+        // 6. 處理圖片（如果是 auto 模式）
+        if (mode === 'auto' || mode === 'nas') {
+          setProcessingStatus(t('common.status.creatingDirectory'));
+          console.log('Creating image directory...');
+          const imageDir = await createDirectory(sdCardHandle, 'image/slideshow');
+          console.log('Image directory created');
       
-      await createConfigFile(sdCardHandle, configData);
-      setShowSuccess(true);
-      setIsProcessing(false);  // 在成功時關閉 loading
+          console.log('Starting image processing...');
+          await processImages(
+            imageConfig.images,
+            imageDir,
+            imageConfig.size,
+            (status) => {
+              console.log('Status update:', status);
+              setProcessingStatus(status);
+            }
+          );
+          console.log('Image processing completed');
+        }
+  
+        // 7. 建立設定檔
+        setProcessingStatus(t('common.status.creatingConfig'));
+        const configData = {
+          Customer: customer,
+          Mode: mode,
+          PowerMode: powerMode,
+          TimeZone: timeZone,
+          SoftAP: "0",
+          Path: "/sdcard/image/slideshow",
+          
+          ...(mode === 'cms' ? {
+            Interval: "180",
+            WifiSetting: `${networkConfig.ssid}${networkConfig.password ? ',' + networkConfig.password : ''}`,
+            ServerURL: serverURL,
+            ...(networkConfig.wifi === 'staticIP' ? {
+              IP_addr: networkConfig.ip,
+              Netmask: networkConfig.netmask,
+              Gateway: networkConfig.gateway,
+              DNS: networkConfig.dns
+            } : {})
+          } : {
+            Interval: imageConfig.interval.toString(),
+            WifiSetting: "",
+            ServerURL: "",
+          }),
+  
+          PackageName: "",
+          ActivityName: "",
+        };
+        
+        await createConfigFile(sdCardHandle, configData);
+        setShowSuccess(true);
+  
+      } catch (error) {
+        // 如果在處理過程中發生錯誤，進行清理
+        console.error('Error during process:', error);
+        setProcessingStatus(t('common.status.cleaningUp'));
+        await cleanupSDCard(sdCardHandle, 'process_error');
+        throw error;
+      }
+  
     } catch (error) {
       console.error('Error in handleGenerateConfig:', error);
       setError({
         show: true,
         message: error instanceof Error ? error.message : t('common.error.generateConfigFailed')
       });
-      setIsProcessing(false);  // 在發生錯誤時也要關閉 loading
-      return;
+    } finally {
+      setIsProcessing(false);
     }
   };
 

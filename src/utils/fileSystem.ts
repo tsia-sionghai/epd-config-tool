@@ -125,7 +125,8 @@ export const copyImages = async (
 ) => {
   try {
     for (const [index, image] of images.entries()) {
-      const newFileName = `${index + 1}.png`;
+      // 使用傳入的檔案名稱
+      const newFileName = image.name;  // 改用傳入的名稱
       console.log(`Copying image ${newFileName}`);
       
       // 確保檔案存在
@@ -164,5 +165,61 @@ export const downloadAndSaveBinFiles = async (
   } catch (error) {
     console.error('Error downloading bin files:', error);
     throw error;
+  }
+};
+
+// 新增清理函數
+export const cleanupSDCard = async (
+  dirHandle: FileSystemDirectoryHandle,
+  failedAtStep: string
+): Promise<void> => {
+  try {
+    console.log(`Starting cleanup after failure at step: ${failedAtStep}`);
+
+    // 遞迴刪除目錄及其內容的輔助函數
+    const removeDirectoryRecursive = async (dirHandle: FileSystemDirectoryHandle) => {
+      for await (const entry of dirHandle.values()) {
+        if (entry.kind === 'file') {
+          await dirHandle.removeEntry(entry.name);
+          console.log(`Deleted file: ${entry.name}`);
+        } else if (entry.kind === 'directory') {
+          const subDir = await dirHandle.getDirectoryHandle(entry.name);
+          await removeDirectoryRecursive(subDir);
+          await dirHandle.removeEntry(entry.name);
+          console.log(`Deleted directory: ${entry.name}`);
+        }
+      }
+    };
+
+    // 刪除 show_info 檔案
+    try {
+      await dirHandle.removeEntry('show_info');
+      console.log('Deleted show_info file');
+    } catch (error) {
+      console.log('show_info file not found or already deleted:', error);
+    }
+
+    // 刪除圖片目錄（如果存在）
+    try {
+      const imageDir = await dirHandle.getDirectoryHandle('image');
+      await removeDirectoryRecursive(imageDir);
+      await dirHandle.removeEntry('image');
+      console.log('Deleted image directory and its contents');
+    } catch (error) {
+      console.log('Image directory not found or already deleted:', error);
+    }
+
+    // 刪除設定檔（如果存在）
+    try {
+      await dirHandle.removeEntry('signage_configure.json');
+      console.log('Deleted configuration file');
+    } catch (error) {
+      console.log('Configuration file not found or already deleted:', error);
+    }
+
+    console.log('Cleanup completed successfully');
+  } catch (error) {
+    console.error('Error during cleanup:', error);
+    // 不拋出錯誤，因為這是清理過程
   }
 };
