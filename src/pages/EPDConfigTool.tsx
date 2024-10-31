@@ -197,16 +197,13 @@ const EPDConfigurationTool: React.FC = () => {
         return;
       }
 
-      // 開始處理，顯示 Backdrop
-      setIsProcessing(true);  // 移到這裡，在所有前置檢查之後，實際操作之前
-
       // 3. 檢查 SD Card 是否為空
       setProcessingStatus(t('common.status.checkingSDCard'));
       const isEmpty = await checkSDCardEmpty(sdCardHandle, true);
       if (!isEmpty) {
         throw new Error(t('common.error.sdCardNotEmpty'));
       }
-  
+
       // 4. 檢查模式相關的必填欄位
       if (mode === 'auto') {
         if (!imageConfig.images.length) {
@@ -214,11 +211,11 @@ const EPDConfigurationTool: React.FC = () => {
             show: true,
             message: t('common.error.noImagesSelected')
           });
-          return;
+          return;  // 直接返回，不要拋出錯誤
         }
       } else if (mode === 'cms') {
         const errors = [];
-        
+
         if (!networkConfig.ssid.trim()) errors.push('SSID');
         if (!serverURL.trim()) errors.push('CMS Server URL');
   
@@ -240,6 +237,9 @@ const EPDConfigurationTool: React.FC = () => {
           }));
         }
       }
+
+      // 所有檢查都通過後，才開始實際處理並顯示 Loading
+      setIsProcessing(true);
   
       try {
         // 5. 建立必要檔案和目錄
