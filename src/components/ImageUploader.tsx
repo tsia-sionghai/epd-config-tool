@@ -19,7 +19,7 @@ const DropzoneArea = styled(Box)(({ theme }) => ({
   justifyContent: 'center',
   alignItems: 'center',
   padding: theme.spacing(1),
-  height: '150px',
+  height: '100px',
   textAlign: 'center',
   backgroundColor: theme.palette.grey[50],
   marginBottom: theme.spacing(2),
@@ -201,61 +201,63 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
         </Typography>
       </DropzoneArea>
       
-      <DragDropContext onDragEnd={onDragEnd}>
-        <Droppable droppableId="droppable-images" direction="horizontal">
-          {(provided) => (
-            <PreviewContainer
-              ref={provided.innerRef}
-              {...provided.droppableProps}
-            >
-              {safeImages.map((image, index) => (
-                <Draggable 
-                  key={image.id}
-                  draggableId={image.id}
-                  index={index}
-                >
-                  {(provided, snapshot) => (
-                    <DraggableItem
-                      ref={provided.innerRef}
-                      {...provided.draggableProps}
-                      {...provided.dragHandleProps}
-                    >
-                      <DraggablePreview
-                        sx={{
-                          opacity: snapshot.isDragging ? 0.6 : 1,
-                          transform: snapshot.isDragging ? 'scale(1.05)' : 'scale(1)',
-                          transition: 'all 0.2s ease',
-                        }}
+      {safeImages.length > 0 ? (
+        <DragDropContext onDragEnd={onDragEnd}>
+          <Droppable droppableId="droppable-images" direction="horizontal">
+            {(provided) => (
+              <PreviewContainer
+                ref={provided.innerRef}
+                {...provided.droppableProps}
+              >
+                {safeImages.map((image, index) => (
+                  <Draggable 
+                    key={image.id}
+                    draggableId={image.id}
+                    index={index}
+                  >
+                    {(provided, snapshot) => (
+                      <DraggableItem
+                        ref={provided.innerRef}
+                        {...provided.draggableProps}
+                        {...provided.dragHandleProps}
                       >
-                        <ImagePreview>
-                          <img 
-                            src={image.preview} 
-                            alt={image.name || `preview ${index + 1}`}
-                          />
-                          <DeleteButton
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              e.preventDefault();
-                              removeImage(index);
-                            }}
-                            aria-label="remove image"
-                          >
-                            <CloseIcon />
-                          </DeleteButton>
-                        </ImagePreview>
-                        <SequenceNumber>
-                          {index + 1}
-                        </SequenceNumber>
-                      </DraggablePreview>
-                    </DraggableItem>
-                  )}
-                </Draggable>
-              ))}
-              {provided.placeholder}
-            </PreviewContainer>
-          )}
-        </Droppable>
-      </DragDropContext>
+                        <DraggablePreview
+                          sx={{
+                            opacity: snapshot.isDragging ? 0.6 : 1,
+                            transform: snapshot.isDragging ? 'scale(1.05)' : 'scale(1)',
+                            transition: 'all 0.2s ease',
+                          }}
+                        >
+                          <ImagePreview>
+                            <img 
+                              src={image.preview} 
+                              alt={image.name || `preview ${index + 1}`}
+                            />
+                            <DeleteButton
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                e.preventDefault();
+                                removeImage(index);
+                              }}
+                              aria-label="remove image"
+                            >
+                              <CloseIcon />
+                            </DeleteButton>
+                          </ImagePreview>
+                          <SequenceNumber>
+                            {index + 1}
+                          </SequenceNumber>
+                        </DraggablePreview>
+                      </DraggableItem>
+                    )}
+                  </Draggable>
+                ))}
+                {provided.placeholder}
+              </PreviewContainer>
+            )}
+          </Droppable>
+        </DragDropContext>
+      ) : null}
     </Box>
   );
 };
