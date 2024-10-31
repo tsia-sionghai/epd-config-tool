@@ -64,6 +64,9 @@
       "creatingFiles": "建立檔案...",
       "creatingDirectory": "建立目錄...",
       "copyingImages": "複製圖片...",
+      "uploadingImage": "上傳圖片 {{current}}/{{total}}: {{name}}",
+      "downloadingBinFiles": "下載轉換檔案 {{current}}/{{total}}",
+      "processingImages": "處理圖片...",
       "creatingConfig": "產生設定檔..."
     },
     "success": {
@@ -78,7 +81,10 @@
       "sdCardNotEmpty": "SD 卡不是空的，請手動清空後再試一次",
       "noImagesSelected": "請至少選擇一張圖片",
       "requiredFields": "請填寫以下必填欄位：{{fields}}",
-      "generateConfigFailed": "產生設定檔案失敗"
+      "uploadFailed": "圖片上傳失敗",
+      "downloadFailed": "檔案下載失敗，請稍後再試",
+      "generateConfigFailed": "產生設定檔案失敗",
+      "imageProcessingFailed": "處理圖片 {{name}} 時發生錯誤"
     }
   },
   "mode": {

@@ -13,6 +13,7 @@ export interface ImageFile {
   type: string;
   lastModified: number;
   id: string;
+  order?: number;  // 加入 order 屬性，使用 ? 表示這是可選屬性
 }
 
 export interface ImageConfig {

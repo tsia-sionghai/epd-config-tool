@@ -1,6 +1,5 @@
 // src/pages/EPDConfigTool.tsx
 import React, { useEffect, useState, useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { 
   Alert, 
@@ -30,8 +29,8 @@ import {
   createDirectory, 
   copyImages,
   createEmptyFile,
-  checkSDCardEmpty
-} from '../utils/fileSystem';
+  checkSDCardEmpty} from '../utils/fileSystem';
+import { uploadImageToBin } from '../services/api';
 
 // Styled Backdrop
 const StyledBackdrop = styled(Backdrop)(({ theme }) => ({
@@ -43,9 +42,25 @@ const StyledBackdrop = styled(Backdrop)(({ theme }) => ({
   gap: theme.spacing(2),
 }));
 
+// 在文件頂部 import 區域加入
+async function writeFile(
+  directory: FileSystemDirectoryHandle,
+  fileName: string,
+  content: Blob
+): Promise<void> {
+  try {
+    const fileHandle = await directory.getFileHandle(fileName, { create: true });
+    const writable = await fileHandle.createWritable();
+    await writable.write(content);
+    await writable.close();
+  } catch (error) {
+    console.error(`Error writing file ${fileName}:`, error);
+    throw error;
+  }
+}
+
 const EPDConfigurationTool: React.FC = () => {
   const { t } = useTranslation();
-  const navigate = useNavigate();
 
   // 檢查是否是支援的瀏覽器
   const isSupportedBrowser = useMemo(() => checkBrowserSupport(), []);
@@ -78,17 +93,76 @@ const EPDConfigurationTool: React.FC = () => {
   const [timeZone, setTimeZone] = useState<TimeZoneType>('GMT+08:00');
   const [sdCardPath, setSdCardPath] = useState('');
 
+  // 將這段放在 EPDConfigTool.tsx 中，handleGenerateConfig 之前
+  const processImages = async (
+    images: ImageConfig['images'],
+    imageDir: FileSystemDirectoryHandle,
+    size: string,
+    setStatus: (status: string) => void
+  ) => {
+    console.log('Starting processImages:', { 
+      imageCount: images.length, 
+      size 
+    });
+  
+    for (const [index, image] of images.entries()) {
+      try {
+        const statusText = t('common.status.uploadingImage', { 
+          current: index + 1, 
+          total: images.length,
+          name: image.name 
+        });
+        console.log(statusText);
+        setStatus(statusText);
+  
+        const result = await uploadImageToBin(image.file, size);
+        console.log('Upload result:', result);
+  
+        if (result.bin_url && result.bin_url.length > 0) {
+          const downloadStatus = t('common.status.downloadingBinFiles', { 
+            current: index + 1, 
+            total: images.length 
+          });
+          console.log(downloadStatus);
+          setStatus(downloadStatus);
+  
+          for (const url of result.bin_url) {
+            console.log('Downloading bin file:', url);
+            const response = await fetch(url);
+            
+            if (!response.ok) {
+              throw new Error(`Failed to download bin file: ${url}`);
+            }
+            
+            const blob = await response.blob();
+            const fileName = url.split('/').pop() || `${index + 1}.bin`;
+            await writeFile(imageDir, fileName, blob);
+            console.log('Saved bin file:', fileName);
+          }
+        }
+  
+        // 複製原始圖片
+        await copyImages([{ ...image, order: index }], imageDir);
+        console.log(`Copied original image ${index + 1}.png`);
+  
+      } catch (error) {
+        console.error(`Error processing image ${image.name}:`, error);
+        throw error;
+      }
+    }
+  };
+
   const handleGenerateConfig = async () => {
     try {
       // 清除之前的錯誤訊息
       setCustomerError('');
-  
+
       // 1. 檢查共同必填項目: Customer
       if (!customer.trim()) {
         setCustomerError(t('common.error.customerRequired'));
         return;
       }
-  
+
       // 2. 檢查 SD Card 是否已選擇
       if (!sdCardHandle) {
         setError({
@@ -97,78 +171,72 @@ const EPDConfigurationTool: React.FC = () => {
         });
         return;
       }
-  
+
       // 開始處理，顯示 Backdrop
       setIsProcessing(true);
-  
-      // 3. 根據不同模式檢查必填欄位
+
+      // 3. 檢查模式相關的必填欄位
       if (mode === 'auto') {
-        // 檢查是否有選擇圖片
         if (!imageConfig.images.length) {
-          setError({
-            show: true,
-            message: t('common.error.noImagesSelected')
-          });
-          return;
+          throw new Error(t('common.error.noImagesSelected'));
         }
       } else if (mode === 'cms') {
-        // CMS 模式下的欄位檢查
         const errors = [];
         
-        // 基本必填: SSID 和 Server URL
         if (!networkConfig.ssid.trim()) errors.push('SSID');
         if (!serverURL.trim()) errors.push('CMS Server URL');
-  
-        // WPA2 Personal 和 Static IP 模式需要密碼
+
         if (['wpa2Personal', 'staticIP'].includes(networkConfig.wifi) && 
             !networkConfig.password.trim()) {
           errors.push('WiFi Password');
         }
-  
-        // Static IP 模式的額外檢查
+
         if (networkConfig.wifi === 'staticIP') {
           if (!networkConfig.ip.trim()) errors.push('IP Address');
           if (!networkConfig.netmask.trim()) errors.push('Netmask');
           if (!networkConfig.gateway.trim()) errors.push('Gateway');
           if (!networkConfig.dns.trim()) errors.push('DNS');
         }
-  
+
         if (errors.length > 0) {
-          setError({
-            show: true,
-            message: t('common.error.requiredFields', { fields: errors.join(', ') })
-          });
-          return;
+          throw new Error(t('common.error.requiredFields', { 
+            fields: errors.join(', ') 
+          }));
         }
       }
-      // nas 模式暫不處理
-  
+
       // 4. 檢查 SD Card 是否為空
       setProcessingStatus(t('common.status.checkingSDCard'));
       const isEmpty = await checkSDCardEmpty(sdCardHandle, true);
       if (!isEmpty) {
-        setError({
-          show: true,
-          message: t('common.error.sdCardNotEmpty')
-        });
-        return;
+        throw new Error(t('common.error.sdCardNotEmpty'));
       }
-  
-      // 5. 建立必要檔案
-      // 建立 show_info
+
+      // 5. 建立必要檔案和目錄
       setProcessingStatus(t('common.status.creatingFiles'));
       await createEmptyFile(sdCardHandle, 'show_info');
-  
-      // 只在 auto 模式下處理圖片
-      if (mode === 'auto') {
+
+      // 6. 處理圖片（如果是 auto 模式）
+      if (mode === 'auto' || mode === 'nas') {
         setProcessingStatus(t('common.status.creatingDirectory'));
+        console.log('Creating image directory...');
         const imageDir = await createDirectory(sdCardHandle, 'image/slideshow');
-  
-        setProcessingStatus(t('common.status.copyingImages'));
-        await copyImages(imageConfig.images, imageDir);
+        console.log('Image directory created');
+    
+        console.log('Starting image processing...');
+        await processImages(
+          imageConfig.images,
+          imageDir,
+          imageConfig.size,
+          (status) => {
+            console.log('Status update:', status);
+            setProcessingStatus(status);
+          }
+        );
+        console.log('Image processing completed');
       }
-  
-      // 6. 建立設定檔
+
+      // 7. 建立設定檔
       setProcessingStatus(t('common.status.creatingConfig'));
       const configData = {
         Customer: customer,
@@ -178,7 +246,6 @@ const EPDConfigurationTool: React.FC = () => {
         SoftAP: "0",
         Path: "/sdcard/image/slideshow",
         
-        // 根據模式設定不同的值
         ...(mode === 'cms' ? {
           Interval: "180",
           WifiSetting: `${networkConfig.ssid}${networkConfig.password ? ',' + networkConfig.password : ''}`,
@@ -190,30 +257,26 @@ const EPDConfigurationTool: React.FC = () => {
             DNS: networkConfig.dns
           } : {})
         } : {
-          // auto 模式的設定
           Interval: imageConfig.interval.toString(),
           WifiSetting: "",
           ServerURL: "",
         }),
-  
+
         PackageName: "",
         ActivityName: "",
       };
       
       await createConfigFile(sdCardHandle, configData);
-  
-      // 完成處理
       setShowSuccess(true);
-  
+      setIsProcessing(false);  // 在成功時關閉 loading
     } catch (error) {
       console.error('Error in handleGenerateConfig:', error);
       setError({
         show: true,
-        message: t('common.error.generateConfigFailed')
+        message: error instanceof Error ? error.message : t('common.error.generateConfigFailed')
       });
-    } finally {
-      setIsProcessing(false);
-      setProcessingStatus('');
+      setIsProcessing(false);  // 在發生錯誤時也要關閉 loading
+      return;
     }
   };
 

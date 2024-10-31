@@ -1,28 +1,27 @@
 {
   "compilerOptions": {
     "target": "ES2015",
-    "lib": ["ES2015", "DOM", "DOM.Iterable"],
-    "moduleResolution": "bundler",
     "useDefineForClassFields": true,
-    "allowJs": false,
+    "lib": ["DOM", "DOM.Iterable", "ESNext"],
+    "allowJs": false,  // 不允許使用 JavaScript 檔案
     "skipLibCheck": true,
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
     "strict": true,
     "forceConsistentCasingInFileNames": true,
     "module": "ESNext",
+    "moduleResolution": "Node",
     "resolveJsonModule": true,
     "isolatedModules": true,
-    "noEmit": false,
-    "jsx": "react-jsx"
+    "noEmit": true,     // Vite 會處理編譯
+    "jsx": "react-jsx",
+    "outDir": "./dist"  // 編譯輸出目錄
   },
   "include": [
     "src/**/*.ts",
-    "src/**/*.tsx",
-    "src/**/*.d.ts"
+    "src/**/*.tsx"
   ],
-  "references": [
-    { "path": "./tsconfig.app.json" },
-    { "path": "./tsconfig.node.json" }
+  "exclude": [
+    "node_modules"
   ]
 }

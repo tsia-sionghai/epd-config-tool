@@ -1,26 +1,38 @@
-import axios from 'axios';
+// src/services/api.ts
+export const uploadImageToBin = async (
+  file: File,
+  size: string
+): Promise<{
+  message: string;
+  image_url?: string;
+  bin_url?: string[];
+}> => {
+  try {
+    console.log('Starting uploadImageToBin:', { fileName: file.name, size });
+    
+    const formData = new FormData();
+    formData.append('image', file);
+    formData.append('size', size);
+    formData.append('parameter', '');
 
-const API_BASE_URL = 'https://api.ezread.com.tw';
+    // 修改 URL 路徑為正確的大小寫
+    const response = await fetch('https://api.ezread.com.tw/Image/toE6bin', {
+      method: 'POST',
+      body: formData,
+    });
 
-const api = axios.create({
-  baseURL: API_BASE_URL,
-  headers: {
-    'Content-Type': 'application/json',
-  },
-});
+    console.log('Response status:', response.status);
+    
+    if (!response.ok) {
+      throw new Error(`Upload failed: ${response.status} ${response.statusText}`);
+    }
 
-export const uploadImage = async (file: File) => {
-  const formData = new FormData();
-  formData.append('image', file);
-  const response = await api.post('/image/toE6bin', formData);
-  return response.data;
+    const data = await response.json();
+    console.log('API Response:', data);
+    
+    return data;
+  } catch (error) {
+    console.error('Error in uploadImageToBin:', error);
+    throw error;
+  }
 };
-
-export const generateConfig = async (config: any) => {
-  const response = await api.post('/generate-config', config);
-  return response.data;
-};
-
-// 添加其他 API 調用函數...
-
-export default api;

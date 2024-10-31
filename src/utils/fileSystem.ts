@@ -1,7 +1,6 @@
 // src/utils/fileSystem.ts
 import { ImageFile } from "../types/common";
 
-// src/utils/fileSystem.ts
 export const checkSDCardEmpty = async (dirHandle: FileSystemDirectoryHandle, ignoreSystemFiles = true): Promise<boolean> => {
   try {
     console.log('Starting to check directory:', dirHandle.name);
@@ -107,12 +106,14 @@ export const writeFile = async (
   content: string | Blob
 ): Promise<void> => {
   try {
+    console.log(`Writing file: ${fileName}`);
     const fileHandle = await dirHandle.getFileHandle(fileName, { create: true });
     const writable = await fileHandle.createWritable();
     await writable.write(content);
     await writable.close();
+    console.log(`File written successfully: ${fileName}`);
   } catch (error) {
-    console.error('Error writing file:', error);
+    console.error(`Error writing file ${fileName}:`, error);
     throw error;
   }
 };
@@ -140,6 +141,28 @@ export const copyImages = async (
     }
   } catch (error) {
     console.error('Error copying images:', error);
+    throw error;
+  }
+};
+
+// 下載並儲存 bin 檔案
+export const downloadAndSaveBinFiles = async (
+  urls: string[],
+  targetDir: FileSystemDirectoryHandle
+): Promise<void> => {
+  try {
+    for (const url of urls) {
+      const response = await fetch(url);
+      if (!response.ok) {
+        throw new Error(`Failed to download: ${url}`);
+      }
+
+      const blob = await response.blob();
+      const fileName = url.split('/').pop() || 'default.bin';
+      await writeFile(targetDir, fileName, blob);
+    }
+  } catch (error) {
+    console.error('Error downloading bin files:', error);
     throw error;
   }
 };
