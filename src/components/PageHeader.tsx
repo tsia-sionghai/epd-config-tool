@@ -3,13 +3,14 @@ import React from 'react';
 import { Alert, Box, Typography, styled } from '@mui/material';
 import { Trans, useTranslation } from 'react-i18next';
 import settingsIcon from '../assets/img_set.png';
+import { checkBrowserSupport } from '../utils/browserCheck';
 
 const BrowserNote = styled(Typography)(({ theme }) => ({
   fontSize: '14px',
   color: theme.palette.primary.dark,
 }));
 
-const StyledAlert = styled(Alert)(({ theme }) => ({
+const StyledAlert = styled(Alert)(() => ({
   padding: 0,
   backgroundColor: 'transparent',
   alignItems: 'flex-start',  // 改善對齊
@@ -29,6 +30,7 @@ const StyledAlert = styled(Alert)(({ theme }) => ({
 
 const PageHeader: React.FC = () => {
   const { t } = useTranslation();
+  const isSupportedBrowser = checkBrowserSupport();
 
   return (
     <Box display="flex" justifyContent="center" alignItems="center" mb={2}>
@@ -46,16 +48,18 @@ const PageHeader: React.FC = () => {
           <Typography variant="h6" component="h6" sx={{ mb: 0, fontWeight: 'bold' }}>
             {t('common.title.main')}
           </Typography>
-          <StyledAlert severity="info">
-            <BrowserNote>
-              <Trans
-                i18nKey="common.note.browserSupport"
-                components={{
-                  1: <strong key="chrome" />,
-                }}
-              />
-            </BrowserNote>
-          </StyledAlert>
+          {!isSupportedBrowser && (
+            <StyledAlert severity="info">
+              <BrowserNote>
+                <Trans
+                  i18nKey="common.note.browserSupport"
+                  components={{
+                    1: <strong key="chrome" />,
+                  }}
+                />
+              </BrowserNote>
+            </StyledAlert>
+          )}
         </Box>
       </Box>
     </Box>
