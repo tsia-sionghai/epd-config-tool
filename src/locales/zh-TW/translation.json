@@ -41,7 +41,7 @@
     "hint": {
       "intervalMin": "秒數需設定180秒以上",
       "sdCardPathCheck": "請確認所選擇的儲存路徑位於SD卡中",
-      "downloadBinaryToNAS": "請將下載的播放檔案上傳至您的NAS上。"
+      "downloadBinaryToNAS": "請將下載的播放檔案(ZIP壓縮檔格式)上傳至您的NAS上，並且予以解壓縮。"
     },
     "placeholder": {
       "enterCustomer": "請輸入名稱",
