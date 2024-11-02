@@ -58,11 +58,11 @@ const ImageSection: React.FC<ImageSectionProps> = ({
         </Grid>
       </Grid>
 
+      {/* NAS Mode only */}
       {mode === 'nas' && (
         <>
-          <Grid item container spacing={2} sx={{ mt: 2 }}>
-            <Grid item xs={2} />
-            <Grid item xs={10}>
+          <Grid item container spacing={2}>
+            <Grid item xs={12}>
               <CustomButton 
                 onClick={handleDownloadBinary}
                 fullWidth
@@ -73,8 +73,7 @@ const ImageSection: React.FC<ImageSectionProps> = ({
           </Grid>
 
           <Grid item container spacing={2} sx={{ mt: 1 }}>
-            <Grid item xs={2} />
-            <Grid item xs={10}>
+            <Grid item xs={12}>
               <HintMessage
                 type="error"
                 message={t('common.hint.downloadBinaryToNAS')}
