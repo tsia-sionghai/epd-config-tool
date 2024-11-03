@@ -58,6 +58,11 @@
     "tooltip": {
       "nasNotAvailable": "NAS 模式功能尚未開放，敬請期待"
     },
+    "warning": {
+      "spaceTitle": "空間需求確認",
+      "spaceRequirement": "此操作預估需要 {{size}} MB 的可用空間",
+      "spaceConfirmation": "請確保您的 SD 卡有足夠的可用空間，否則操作可能會失敗。"
+    },
     "status": {
       "processing": "處理中...",
       "checkingSDCard": "檢查 SD 卡...",
@@ -67,7 +72,10 @@
       "uploadingImage": "上傳圖片 {{current}}/{{total}}: {{name}}",
       "downloadingBinFiles": "下載轉換檔案 {{current}}/{{total}}",
       "processingImages": "處理圖片...",
-      "creatingConfig": "產生設定檔..."
+      "creatingConfig": "產生設定檔...",
+      "checkingSpace": "檢查儲存空間...",
+      "cleaningUp": "清理檔案...",
+      "estimatingSpace": "計算所需空間..."
     },
     "success": {
       "configGenerated": "已成功產生設定檔案"
@@ -84,7 +92,9 @@
       "uploadFailed": "圖片上傳失敗",
       "downloadFailed": "檔案下載失敗，請稍後再試",
       "generateConfigFailed": "產生設定檔案失敗",
-      "imageProcessingFailed": "處理圖片 {{name}} 時發生錯誤"
+      "imageProcessingFailed": "處理圖片 {{name}} 時發生錯誤",
+      "insufficientSpace": "儲存空間不足，操作已自動取消",
+      "spaceSuggestions": "建議：\n• 清理 SD 卡空間\n• 使用較大容量的 SD 卡\n• 減少圖片數量或降低解析度"
     }
   },
   "mode": {

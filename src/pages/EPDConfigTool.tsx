@@ -43,6 +43,35 @@ const StyledBackdrop = styled(Backdrop)(({ theme }) => ({
   gap: theme.spacing(2),
 }));
 
+const calculateEstimatedSize = (
+  images: ImageConfig['images'], 
+  mode: ModeType
+): number => {
+  // 計算原始圖片大小
+  const imagesSize = images.reduce((total, img) => total + img.file.size, 0);
+  
+  if (mode === 'auto') {
+    // auto 模式：原始圖片 + BIN檔案(約1.5倍) + 其他檔案
+    const estimatedBinSize = imagesSize * 1.5;
+    const otherFilesSize = 1024 * 1024; // 1MB for other files
+    return imagesSize + estimatedBinSize + otherFilesSize;
+  } else if (mode === 'nas') {
+    // nas 模式：原始圖片 + ZIP壓縮(約0.8倍) + 其他檔案
+    const estimatedZipSize = imagesSize * 0.8;
+    const otherFilesSize = 1024 * 1024; // 1MB for other files
+    return imagesSize + estimatedZipSize + otherFilesSize;
+  }
+  
+  return 0; // 其他模式不需要額外空間
+};
+
+// isStorageError helper function
+const isStorageError = (error: Error): boolean => {
+  return error.name === 'QuotaExceededError' || 
+         error.message.includes('quota') || 
+         error.message.includes('space');
+};
+
 // 在文件頂部 import 區域加入
 async function writeFile(
   directory: FileSystemDirectoryHandle,
@@ -94,7 +123,7 @@ const EPDConfigurationTool: React.FC = () => {
   const [timeZone, setTimeZone] = useState<TimeZoneType>('GMT+08:00');
   const [sdCardPath, setSdCardPath] = useState('');
 
-  // 將這段放在 EPDConfigTool.tsx 中，handleGenerateConfig 之前
+  // processImages 需放在 handleGenerateConfig 之前
   const processImages = async (
     images: ImageConfig['images'],
     imageDir: FileSystemDirectoryHandle,
@@ -106,76 +135,112 @@ const EPDConfigurationTool: React.FC = () => {
       size 
     });
   
-    // 先複製並重命名所有圖片，保留原始副檔名
-    setStatus(t('common.status.copyingImages'));
-    for (const [index, image] of images.entries()) {
-      // 取得原始檔案的副檔名
-      const extension = image.name.split('.').pop() || '';
-      const newFileName = `${(index + 1).toString()}.${extension}`;
-      await copyImages([{ ...image, name: newFileName, order: index }], imageDir);
-      console.log(`Copied and renamed image to ${newFileName}`);
-    }
-  
-    // 然後使用重命名後的圖片進行轉換
-    for (let index = 0; index < images.length; index++) {
-      try {
-        // 使用原始圖片的副檔名
-        const originalImage = images[index];
-        const extension = originalImage.name.split('.').pop() || '';
-        const newFileName = `${(index + 1).toString()}.${extension}`;
-  
-        const statusText = t('common.status.uploadingImage', { 
-          current: index + 1, 
-          total: images.length,
-          name: newFileName 
-        });
-        console.log(statusText);
-        setStatus(statusText);
-  
-        // 取得重命名後的圖片檔案
-        const fileHandle = await imageDir.getFileHandle(newFileName);
-        const file = await fileHandle.getFile();
-  
-        // 記錄檔案資訊以便偵錯
-        console.log('Uploading file:', {
-          name: file.name,
-          type: file.type,
-          size: file.size,
-          lastModified: file.lastModified
-        });
-  
-        const result = await uploadImageToBin(file, size);
-        console.log('Upload result:', result);
-  
-        if (result.bin_url && result.bin_url.length > 0) {
-          const downloadStatus = t('common.status.downloadingBinFiles', { 
-            current: index + 1, 
-            total: images.length 
-          });
-          console.log(downloadStatus);
-          setStatus(downloadStatus);
-  
-          for (const url of result.bin_url) {
-            console.log('Downloading bin file:', url);
-            const response = await fetch(url);
-            
-            if (!response.ok) {
-              throw new Error(`Failed to download bin file: ${url}`);
-            }
-            
-            const blob = await response.blob();
-            const fileName = url.split('/').pop() || `${(index + 1).toString()}.bin`;
-            await writeFile(imageDir, fileName, blob);
-            console.log('Saved bin file:', fileName);
+    try {
+      // 先複製並重命名所有圖片，保留原始副檔名
+      setStatus(t('common.status.copyingImages'));
+      for (const [index, image] of images.entries()) {
+        try {
+          // 取得原始檔案的副檔名
+          const extension = image.name.split('.').pop() || '';
+          const newFileName = `${(index + 1).toString()}.${extension}`;
+          await copyImages([{ ...image, name: newFileName, order: index }], imageDir);
+          console.log(`Copied and renamed image to ${newFileName}`);
+        } catch (error) {
+          // 檢查是否為儲存空間錯誤
+          if (isStorageError(error as Error)) {
+            console.error('Storage error while copying images:', error);
+            throw new Error(t('common.error.insufficientSpace'));
           }
+          throw error;
         }
-  
-      } catch (error) {
-        console.error(`Error processing image ${(index + 1).toString()}:`, error);
-        throw error;
       }
+  
+      // 然後使用重命名後的圖片進行轉換
+      for (let index = 0; index < images.length; index++) {
+        try {
+          // 使用原始圖片的副檔名
+          const originalImage = images[index];
+          const extension = originalImage.name.split('.').pop() || '';
+          const newFileName = `${(index + 1).toString()}.${extension}`;
+  
+          const statusText = t('common.status.uploadingImage', { 
+            current: index + 1, 
+            total: images.length,
+            name: newFileName 
+          });
+          console.log(statusText);
+          setStatus(statusText);
+  
+          // 取得重命名後的圖片檔案
+          const fileHandle = await imageDir.getFileHandle(newFileName);
+          const file = await fileHandle.getFile();
+  
+          // 記錄檔案資訊以便偵錯
+          console.log('Uploading file:', {
+            name: file.name,
+            type: file.type,
+            size: file.size,
+            lastModified: file.lastModified
+          });
+  
+          const result = await uploadImageToBin(file, size);
+          console.log('Upload result:', result);
+  
+          if (result.bin_url && result.bin_url.length > 0) {
+            const downloadStatus = t('common.status.downloadingBinFiles', { 
+              current: index + 1, 
+              total: images.length 
+            });
+            console.log(downloadStatus);
+            setStatus(downloadStatus);
+  
+            for (const url of result.bin_url) {
+              try {
+                console.log('Downloading bin file:', url);
+                const response = await fetch(url);
+                
+                if (!response.ok) {
+                  throw new Error(`Failed to download bin file: ${url}`);
+                }
+                
+                const blob = await response.blob();
+                const fileName = url.split('/').pop() || `${(index + 1).toString()}.bin`;
+                
+                // 寫入 bin 檔案時也檢查儲存空間錯誤
+                try {
+                  await writeFile(imageDir, fileName, blob);
+                  console.log('Saved bin file:', fileName);
+                } catch (error) {
+                  if (isStorageError(error as Error)) {
+                    console.error('Storage error while saving bin file:', error);
+                    throw new Error(t('common.error.insufficientSpace'));
+                  }
+                  throw error;
+                }
+              } catch (error) {
+                console.error(`Error processing bin file ${url}:`, error);
+                throw error;
+              }
+            }
+          }
+  
+        } catch (error) {
+          console.error(`Error processing image ${(index + 1).toString()}:`, error);
+          // 如果是儲存空間錯誤，使用特定的錯誤訊息
+          if (isStorageError(error as Error)) {
+            throw new Error(t('common.error.insufficientSpace'));
+          }
+          // 其他錯誤則使用一般的錯誤訊息
+          throw new Error(t('common.error.imageProcessingFailed', { 
+            name: `${(index + 1).toString()}`
+          }));
+        }
+      }
+    } catch (error) {
+      console.error('Error in processImages:', error);
+      throw error; // 向上傳遞錯誤，讓 handleGenerateConfig 處理清理工作
     }
-  };
+  };  
 
   const handleGenerateConfig = async () => {
     try {
@@ -196,22 +261,36 @@ const EPDConfigurationTool: React.FC = () => {
         });
         return;
       }
-
+  
       // 3. 檢查 SD Card 是否為空
       setProcessingStatus(t('common.status.checkingSDCard'));
       const isEmpty = await checkSDCardEmpty(sdCardHandle, true);
       if (!isEmpty) {
         throw new Error(t('common.error.sdCardNotEmpty'));
       }
-
+  
       // 4. 檢查模式相關的必填欄位
-      if (mode === 'auto') {
+      if (mode === 'auto' || mode === 'nas') {  // 修改判斷條件
         if (!imageConfig.images.length) {
           setError({
             show: true,
             message: t('common.error.noImagesSelected')
           });
-          return;  // 直接返回，不要拋出錯誤
+          return;
+        }
+      
+        // 空間檢查（在任何需要處理圖片的模式下進行）
+        setProcessingStatus(t('common.status.estimatingSpace'));
+        const estimatedSize = calculateEstimatedSize(imageConfig.images, mode);  // 傳入 mode 參數
+        const shouldContinue = window.confirm(
+          t('common.warning.spaceRequirement', { 
+            size: Math.ceil(estimatedSize / (1024 * 1024))
+          }) + '\n\n' + 
+          t('common.warning.spaceConfirmation')
+        );
+      
+        if (!shouldContinue) {
+          return;
         }
       } else if (mode === 'cms') {
         const errors = [];
@@ -238,7 +317,7 @@ const EPDConfigurationTool: React.FC = () => {
         }
       }
 
-      // 所有檢查都通過後，才開始實際處理並顯示 Loading
+      // 開始處理，顯示 Loading
       setIsProcessing(true);
   
       try {
@@ -252,18 +331,28 @@ const EPDConfigurationTool: React.FC = () => {
           console.log('Creating image directory...');
           const imageDir = await createDirectory(sdCardHandle, 'image/slideshow');
           console.log('Image directory created');
-      
-          console.log('Starting image processing...');
-          await processImages(
-            imageConfig.images,
-            imageDir,
-            imageConfig.size,
-            (status) => {
-              console.log('Status update:', status);
-              setProcessingStatus(status);
+  
+          try {
+            console.log('Starting image processing...');
+            await processImages(
+              imageConfig.images,
+              imageDir,
+              imageConfig.size,
+              (status) => {
+                console.log('Status update:', status);
+                setProcessingStatus(status);
+              }
+            );
+            console.log('Image processing completed');
+          } catch (error) {
+            // 處理圖片過程中的錯誤
+            if (isStorageError(error as Error)) {
+              setProcessingStatus(t('common.status.cleaningUp'));
+              await cleanupSDCard(sdCardHandle, 'storage_error');
+              throw new Error(t('common.error.insufficientSpace'));
             }
-          );
-          console.log('Image processing completed');
+            throw error;
+          }
         }
   
         // 7. 建立設定檔
@@ -298,7 +387,7 @@ const EPDConfigurationTool: React.FC = () => {
         
         await createConfigFile(sdCardHandle, configData);
         setShowSuccess(true);
-  
+
       } catch (error) {
         // 如果在處理過程中發生錯誤，進行清理
         console.error('Error during process:', error);
@@ -306,12 +395,16 @@ const EPDConfigurationTool: React.FC = () => {
         await cleanupSDCard(sdCardHandle, 'process_error');
         throw error;
       }
-  
+
     } catch (error) {
       console.error('Error in handleGenerateConfig:', error);
       setError({
         show: true,
-        message: error instanceof Error ? error.message : t('common.error.generateConfigFailed')
+        message: error instanceof Error ? 
+          (error.message.includes('儲存空間不足') ? 
+            `${error.message}\n${t('common.error.spaceSuggestions')}` : 
+            error.message) : 
+          t('common.error.generateConfigFailed')
       });
     } finally {
       setIsProcessing(false);
@@ -340,7 +433,7 @@ const EPDConfigurationTool: React.FC = () => {
   // Image settings state
   const [imageConfig, setImageConfig] = useState<ImageConfig>({
     size: '13.3',
-    rotate: 0,
+    rotate: 90,
     interval: 180,
     images: []
   });
