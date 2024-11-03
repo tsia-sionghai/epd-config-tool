@@ -433,7 +433,7 @@ const EPDConfigurationTool: React.FC = () => {
   // Image settings state
   const [imageConfig, setImageConfig] = useState<ImageConfig>({
     size: '13.3',
-    rotate: 90,
+    rotate: 90,  // 13.3" 的預設值為 90 度
     interval: 180,
     images: []
   });
@@ -452,18 +452,21 @@ const EPDConfigurationTool: React.FC = () => {
     if (typeof updates === 'function') {
       setImageConfig(updates);
     } else {
-      setImageConfig(prev => ({
-        ...prev,
-        ...updates
-      }));
+      setImageConfig(prev => {
+        // 只在 size 變更時處理預設的 rotate 值
+        if (updates.size) {
+          return {
+            ...prev,
+            ...updates,
+            // 如果是切換到 13.3"，則預設為 90 度
+            // 如果是切換到其他尺寸，則預設為 0 度
+            rotate: updates.size === '13.3' ? 90 : 0
+          };
+        }
+        // 其他更新（包括手動調整 rotate）維持原樣
+        return { ...prev, ...updates };
+      });
     }
-  };
-
-  const handleSDCardError = (message: string) => {
-    setError({
-      show: true,
-      message
-    });
   };
 
   return (
