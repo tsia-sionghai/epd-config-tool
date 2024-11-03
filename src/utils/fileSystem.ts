@@ -1,34 +1,48 @@
 // src/utils/fileSystem.ts
 import { ImageFile } from "../types/common";
+import { systemFiles, systemFilePatterns } from "../configs/systemFiles";
+import { logUnknownSystemFile } from "./systemFileLogger";
 
-export const checkSDCardEmpty = async (dirHandle: FileSystemDirectoryHandle, ignoreSystemFiles = true): Promise<boolean> => {
+// 檢查是否為系統檔案
+const isSystemFile = (fileName: string): boolean => {
+  // 檢查已知系統檔案
+  const allSystemFiles = [...systemFiles.windows, ...systemFiles.macos, ...systemFiles.common];
+  if (allSystemFiles.includes(fileName)) {
+    return true;
+  }
+
+  // 檢查檔案模式
+  if (systemFilePatterns.some(pattern => pattern.test(fileName))) {
+    return true;
+  }
+
+  // 記錄可能的系統檔案
+  if (fileName.startsWith('.') || fileName.startsWith('$')) {
+    logUnknownSystemFile(fileName);
+    return true;
+  }
+
+  return false;
+};
+
+export const checkSDCardEmpty = async (
+  dirHandle: FileSystemDirectoryHandle, 
+  ignoreSystemFiles = true
+): Promise<boolean> => {
   try {
     console.log('Starting to check directory:', dirHandle.name);
-
-    // 獲取目錄內容
     const entries = dirHandle.values();
     
-    // 遍歷所有檔案
     for await (const entry of entries) {
-      // 忽略系統檔案
-      if (ignoreSystemFiles && (
-        entry.name.startsWith('.') ||       // 隱藏檔案
-        entry.name === '.DS_Store' ||       // macOS 系統檔案
-        entry.name === 'Thumbs.db' ||       // Windows 系統檔案
-        entry.name === '.Spotlight-V100' || // macOS Spotlight 索引
-        entry.name === '.Trashes' ||        // macOS 垃圾桶
-        entry.name === '.fseventsd'         // macOS 檔案系統事件
-      )) {
+      if (ignoreSystemFiles && isSystemFile(entry.name)) {
         console.log('Ignoring system file:', entry.name);
         continue;
       }
 
-      // 如果找到非系統檔案
       console.log('Found non-system file:', entry.name);
       return false;
     }
 
-    // 如果遍歷完成沒有找到非系統檔案，表示目錄為空
     console.log('Directory is empty (excluding system files)');
     return true;
 
