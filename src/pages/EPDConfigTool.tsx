@@ -469,6 +469,13 @@ const EPDConfigurationTool: React.FC = () => {
     }
   };
 
+  const handleSDCardError = (message: string) => {
+    setError({
+      show: true,
+      message
+    });
+  };
+
   return (
     <Box>
       <PageHeader />
