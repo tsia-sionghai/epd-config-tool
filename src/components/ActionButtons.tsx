@@ -12,7 +12,6 @@ interface ActionButtonsProps {
 }
 
 const ActionButtons: React.FC<ActionButtonsProps> = ({
-  mode,
   onGenerateConfig,
   disabled = false,  // 設定預設值
 }) => {
