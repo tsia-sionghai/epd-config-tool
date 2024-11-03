@@ -10,14 +10,14 @@ interface SizeSelectorProps {
 }
 
 const SizeSelector: React.FC<SizeSelectorProps> = ({ value, onChange }) => {
-  const { t } = useTranslation();
+  useTranslation();
 
   // 定義尺寸選項和對應的解析度
   const sizeOptions = [
     { value: '13.3', resolution: '1200x1600' },
-    { value: '25.3', resolution: '1800x3200' },
-    { value: '28.3', resolution: '2160x3060' },
-    { value: '31.5', resolution: '1440x2560' },
+    { value: '25.3', resolution: '3200x1800' },
+    { value: '28.3', resolution: '3060x2160' },
+    { value: '31.5', resolution: '2560x1440' },
   ] as const;
 
   return (
