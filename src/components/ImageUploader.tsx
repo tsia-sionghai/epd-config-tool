@@ -11,6 +11,7 @@ import {
 } from '@hello-pangea/dnd';
 import { useTranslation } from 'react-i18next';
 import { ImageFile } from '../types/common';
+import { getThumbnailDimensions } from '../utils/imageUtils';
 
 const DropzoneArea = styled(Box)(({ theme }) => ({
   border: `2px dashed ${theme.palette.grey[300]}`,
@@ -30,52 +31,55 @@ const DropzoneArea = styled(Box)(({ theme }) => ({
 }));
 
 const PreviewContainer = styled('div')(({ theme }) => ({
-  display: 'flex',
-  flexWrap: 'wrap',
+  display: 'grid',
+  // gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',  // 自動調整列數
+  gridTemplateColumns: 'auto auto auto',
   gap: theme.spacing(2),
   width: '100%',
   padding: theme.spacing(1),
+  alignItems: 'start',
+  justifyItems: 'center',
+  justifyContent: 'flex-start'
 }));
 
-const DraggablePreview = styled(Box)({
+const DraggableItem = styled('div')({
+  position: 'relative',
+  cursor: 'grab',
   display: 'flex',
   flexDirection: 'column',
   alignItems: 'center',
-  width: '150px',
-  userSelect: 'none',
-});
-
-const DraggableItem = styled('div')({
-  width: '150px',
-  padding: '8px',
-  cursor: 'grab',
+  gap: '8px',
   '&:active': {
     cursor: 'grabbing',
-  },
+  }
 });
 
-const ImagePreview = styled(Box)(({ theme }) => ({
-  position: 'relative',
-  width: '100%',
-  height: '200px',
-  backgroundColor: theme.palette.grey[200],
-  borderRadius: theme.shape.borderRadius,
-  overflow: 'visible',
-  '& img': {
-    width: '100%',
-    height: '100%',
-    objectFit: 'cover',
-    display: 'block',
-    borderRadius: theme.shape.borderRadius,
-  },
-}));
+const DraggablePreview = styled(Box)<{ width: number }>(
+  ({ width }) => ({
+    width,
+    position: 'relative',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    border: '1px solid rgba(0, 0, 0, 0.12)',
+    borderRadius: '4px',
+    backgroundColor: '#fff',
+    overflow: 'visible',
+    padding: '2px',  // 減少 padding
+    '& img': {
+      width: '100%',
+      height: '100%',
+      objectFit: 'contain'
+    }
+  })
+);
 
 const DeleteButton = styled(IconButton)(({ theme }) => ({
   position: 'absolute',
-  top: theme.spacing(-1),
-  right: theme.spacing(-1),
-  width: 24,
-  height: 24,
+  top: -8,
+  right: -8,
+  width: 16,
+  height: 16,
   padding: 0,
   backgroundColor: theme.palette.primary.dark,
   color: theme.palette.common.white,
@@ -84,7 +88,7 @@ const DeleteButton = styled(IconButton)(({ theme }) => ({
     backgroundColor: theme.palette.primary.main,
   },
   '& .MuiSvgIcon-root': {
-    fontSize: 16,
+    fontSize: 12,
   },
 }));
 
@@ -152,7 +156,7 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
     }
   }, [safeImages.length, maxImages, open]);
 
-  const onDragEnd = useCallback((result: DropResult) => {
+  const handleDragEnd = useCallback((result: DropResult) => {
     if (!result.destination) {
       return;
     }
@@ -164,6 +168,7 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
     setImages(reorderedItems);
   }, [safeImages, setImages]);
 
+  // 添加 removeImage 函數
   const removeImage = useCallback((index: number) => {
     setImages(prev => {
       const newImages = prev.filter((_, i) => i !== index);
@@ -201,38 +206,62 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
         </Typography>
       </DropzoneArea>
       
-      {safeImages.length > 0 ? (
-        <DragDropContext onDragEnd={onDragEnd}>
+      {safeImages.length > 0 && (
+        <DragDropContext onDragEnd={handleDragEnd}>
           <Droppable droppableId="droppable-images" direction="horizontal">
             {(provided) => (
               <PreviewContainer
                 ref={provided.innerRef}
                 {...provided.droppableProps}
               >
-                {safeImages.map((image, index) => (
-                  <Draggable 
-                    key={image.id}
-                    draggableId={image.id}
-                    index={index}
-                  >
-                    {(provided, snapshot) => (
-                      <DraggableItem
-                        ref={provided.innerRef}
-                        {...provided.draggableProps}
-                        {...provided.dragHandleProps}
-                      >
-                        <DraggablePreview
-                          sx={{
-                            opacity: snapshot.isDragging ? 0.6 : 1,
-                            transform: snapshot.isDragging ? 'scale(1.05)' : 'scale(1)',
-                            transition: 'all 0.2s ease',
-                          }}
+                {safeImages.map((image, index) => {
+                  const dimensions = getThumbnailDimensions(size, rotate);
+                  const isVertical = rotate === 90 || rotate === 270;
+                  const baseSize = 150;
+                  
+                  return (
+                    <Draggable 
+                      key={image.id}
+                      draggableId={image.id}
+                      index={index}
+                    >
+                      {(provided) => (  // 移除未使用的 snapshot 參數
+                        <DraggableItem
+                          ref={provided.innerRef}
+                          {...provided.draggableProps}
+                          {...provided.dragHandleProps}
+                          style={provided.draggableProps.style}
                         >
-                          <ImagePreview>
-                            <img 
-                              src={image.preview} 
-                              alt={image.name || `preview ${index + 1}`}
-                            />
+                          <DraggablePreview
+                            width={baseSize}
+                            sx={{
+                              height: isVertical ? baseSize * (4/3) : baseSize * (3/4),
+                              padding: '4px'
+                            }}
+                          >
+                            <Box
+                              sx={{
+                                width: '100%',
+                                height: '100%',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                position: 'relative'
+                              }}
+                            >
+                              <img
+                                src={image.preview}
+                                alt={image.name}
+                                style={{
+                                  maxWidth: '100%',
+                                  maxHeight: '100%',
+                                  objectFit: 'contain',
+                                  transform: `rotate(${dimensions.rotate}deg)`,
+                                  transformOrigin: 'center center',
+                                  transition: 'all 0.3s ease'
+                                }}
+                              />
+                            </Box>
                             <DeleteButton
                               onClick={(e) => {
                                 e.stopPropagation();
@@ -243,21 +272,21 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
                             >
                               <CloseIcon />
                             </DeleteButton>
-                          </ImagePreview>
+                          </DraggablePreview>
                           <SequenceNumber>
                             {index + 1}
                           </SequenceNumber>
-                        </DraggablePreview>
-                      </DraggableItem>
-                    )}
-                  </Draggable>
-                ))}
+                        </DraggableItem>
+                      )}
+                    </Draggable>
+                  );
+                })}
                 {provided.placeholder}
               </PreviewContainer>
             )}
           </Droppable>
         </DragDropContext>
-      ) : null}
+      )}
     </Box>
   );
 };

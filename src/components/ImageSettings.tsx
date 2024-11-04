@@ -8,7 +8,6 @@ import RotateSelector from './RotateSelector';
 import IntervalSelector from './IntervalSelector';
 import ImageSection from './ImageSection';
 import SelectorField from './common/SelectorField';
-import FormField from './common/FormField';
 
 interface ImageSettingsProps {
   mode: ModeType;
