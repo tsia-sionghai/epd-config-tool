@@ -116,7 +116,7 @@ const EPDConfigurationTool: React.FC = () => {
   }, [isSupportedBrowser]);
 
   // Basic settings state
-  const [customer, setCustomer] = useState('');
+  const [customer, setCustomer] = useState('NB');
   const [customerError, setCustomerError] = useState<string>('');
   const [mode, setMode] = useState<ModeType>('auto');
   const [powerMode, setPowerMode] = useState<PowerModeType>('hibernation');
