@@ -294,26 +294,30 @@ const EPDConfigurationTool: React.FC = () => {
         }
       } else if (mode === 'cms') {
         const errors = [];
-
+  
         if (!networkConfig.ssid.trim()) errors.push('SSID');
         if (!serverURL.trim()) errors.push('CMS Server URL');
-  
+
         if (['wpa2Personal', 'staticIP'].includes(networkConfig.wifi) && 
             !networkConfig.password.trim()) {
           errors.push('WiFi Password');
         }
-  
+
         if (networkConfig.wifi === 'staticIP') {
           if (!networkConfig.ip.trim()) errors.push('IP Address');
           if (!networkConfig.netmask.trim()) errors.push('Netmask');
           if (!networkConfig.gateway.trim()) errors.push('Gateway');
           if (!networkConfig.dns.trim()) errors.push('DNS');
         }
-  
+
         if (errors.length > 0) {
-          throw new Error(t('common.error.requiredFields', { 
-            fields: errors.join(', ') 
-          }));
+          setError({
+            show: true,
+            message: t('common.error.requiredFields', { 
+              fields: errors.join(', ') 
+            })
+          });
+          return;  // 直接返回，不要拋出錯誤
         }
       }
 
