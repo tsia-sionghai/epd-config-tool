@@ -69,7 +69,7 @@ const SDCardPathSettings: React.FC<SDCardPathSettingsProps> = ({
 
   const handleSelectPath = async () => {
     try {
-      if ('showDirectoryPicker' in window) {
+      // if ('showDirectoryPicker' in window) {
         const dirHandle = await window.showDirectoryPicker({
           mode: 'readwrite',
         });
@@ -83,9 +83,9 @@ const SDCardPathSettings: React.FC<SDCardPathSettingsProps> = ({
 
         setSdCardPath(dirHandle.name);
         onDirectorySelect(dirHandle);
-      } else {
-        onError?.(t('common.error.browserNotSupported'));
-      }
+      // } else {
+      //   onError?.(t('common.error.browserNotSupported'));
+      // }
     } catch (err) {
       console.error('Error selecting directory:', err);
     }

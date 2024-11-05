@@ -32,6 +32,7 @@ import {
   checkSDCardEmpty,
   cleanupSDCard} from '../utils/fileSystem';
 import { uploadImageToBin } from '../services/api';
+import { logFileDetails } from '../utils/diagnostics';
 
 // Styled Backdrop
 const StyledBackdrop = styled(Backdrop)(({ theme }) => ({
@@ -123,6 +124,12 @@ const EPDConfigurationTool: React.FC = () => {
   const [timeZone, setTimeZone] = useState<TimeZoneType>('GMT+08:00');
   const [sdCardPath, setSdCardPath] = useState('');
 
+  interface FileError extends Error {
+    name: string;
+    message: string;
+    stack?: string;
+  }
+
   // processImages 需放在 handleGenerateConfig 之前
   const processImages = async (
     images: ImageConfig['images'],
@@ -130,9 +137,11 @@ const EPDConfigurationTool: React.FC = () => {
     size: string,
     setStatus: (status: string) => void
   ) => {
-    console.log('Starting processImages:', { 
+    console.log('Starting processImages diagnostic:', { 
       imageCount: images.length, 
-      size 
+      size,
+      platform: navigator.platform,
+      userAgent: navigator.userAgent
     });
   
     try {
@@ -140,15 +149,21 @@ const EPDConfigurationTool: React.FC = () => {
       setStatus(t('common.status.copyingImages'));
       for (const [index, image] of images.entries()) {
         try {
-          // 取得原始檔案的副檔名
+          // 記錄原始檔案資訊
+          console.log(`Original file ${index + 1} diagnostic:`, await logFileDetails(image.file));
+
           const extension = image.name.split('.').pop() || '';
           const newFileName = `${(index + 1).toString()}.${extension}`;
           await copyImages([{ ...image, name: newFileName, order: index }], imageDir);
           console.log(`Copied and renamed image to ${newFileName}`);
-        } catch (error) {
-          // 檢查是否為儲存空間錯誤
-          if (isStorageError(error as Error)) {
-            console.error('Storage error while copying images:', error);
+        } catch (err) {
+          const error = err as FileError;
+          if (isStorageError(error)) {
+            console.error('Storage error while copying images:', {
+              error: error.message,
+              errorType: error.name,
+              errorStack: error.stack
+            });
             throw new Error(t('common.error.insufficientSpace'));
           }
           throw error;
@@ -158,7 +173,6 @@ const EPDConfigurationTool: React.FC = () => {
       // 然後使用重命名後的圖片進行轉換
       for (let index = 0; index < images.length; index++) {
         try {
-          // 使用原始圖片的副檔名
           const originalImage = images[index];
           const extension = originalImage.name.split('.').pop() || '';
           const newFileName = `${(index + 1).toString()}.${extension}`;
@@ -171,19 +185,20 @@ const EPDConfigurationTool: React.FC = () => {
           console.log(statusText);
           setStatus(statusText);
   
-          // 取得重命名後的圖片檔案
+          // 取得重命名後的圖片檔案並進行診斷
           const fileHandle = await imageDir.getFileHandle(newFileName);
           const file = await fileHandle.getFile();
+          console.log(`Processing renamed file ${index + 1} diagnostic:`, await logFileDetails(file));
   
-          // 記錄檔案資訊以便偵錯
-          console.log('Uploading file:', {
-            name: file.name,
+          // 使用 Blob 建立新的檔案副本
+          const fileBlob = new Blob([await file.arrayBuffer()], { type: file.type });
+          const newFile = new File([fileBlob], file.name, { 
             type: file.type,
-            size: file.size,
-            lastModified: file.lastModified
+            lastModified: file.lastModified 
           });
+          console.log(`File copy diagnostic:`, await logFileDetails(newFile));
   
-          const result = await uploadImageToBin(file, size);
+          const result = await uploadImageToBin(newFile, size);
           console.log('Upload result:', result);
   
           if (result.bin_url && result.bin_url.length > 0) {
@@ -193,54 +208,53 @@ const EPDConfigurationTool: React.FC = () => {
             });
             console.log(downloadStatus);
             setStatus(downloadStatus);
-  
+          
             for (const url of result.bin_url) {
               try {
-                console.log('Downloading bin file:', url);
-                const response = await fetch(url);
+                // 將 HTTP URL 轉換為 HTTPS
+                const secureUrl = url.replace('http://', 'https://');
+                console.log('Downloading bin file:', secureUrl);
+                const response = await fetch(secureUrl);
                 
                 if (!response.ok) {
-                  throw new Error(`Failed to download bin file: ${url}`);
+                  throw new Error(`Failed to download bin file: ${secureUrl}`);
                 }
                 
                 const blob = await response.blob();
-                const fileName = url.split('/').pop() || `${(index + 1).toString()}.bin`;
-                
-                // 寫入 bin 檔案時也檢查儲存空間錯誤
-                try {
-                  await writeFile(imageDir, fileName, blob);
-                  console.log('Saved bin file:', fileName);
-                } catch (error) {
-                  if (isStorageError(error as Error)) {
-                    console.error('Storage error while saving bin file:', error);
-                    throw new Error(t('common.error.insufficientSpace'));
-                  }
-                  throw error;
-                }
+                const fileName = secureUrl.split('/').pop() || `${(index + 1).toString()}.bin`;
+                await writeFile(imageDir, fileName, blob);
+                console.log('Saved bin file:', fileName);
               } catch (error) {
                 console.error(`Error processing bin file ${url}:`, error);
                 throw error;
               }
             }
           }
-  
-        } catch (error) {
-          console.error(`Error processing image ${(index + 1).toString()}:`, error);
-          // 如果是儲存空間錯誤，使用特定的錯誤訊息
-          if (isStorageError(error as Error)) {
+        } catch (err) {
+          const error = err as FileError;
+          console.error(`Error processing image ${(index + 1).toString()}:`, {
+            error: error.message,
+            errorType: error.name,
+            errorStack: error.stack
+          });
+          if (isStorageError(error)) {
             throw new Error(t('common.error.insufficientSpace'));
           }
-          // 其他錯誤則使用一般的錯誤訊息
           throw new Error(t('common.error.imageProcessingFailed', { 
             name: `${(index + 1).toString()}`
           }));
         }
       }
-    } catch (error) {
-      console.error('Error in processImages:', error);
-      throw error; // 向上傳遞錯誤，讓 handleGenerateConfig 處理清理工作
+    } catch (err) {
+      const error = err as FileError;
+      console.error('Error in processImages:', {
+        error: error.message,
+        errorType: error.name,
+        errorStack: error.stack
+      });
+      throw error;
     }
-  };  
+  };
 
   const handleGenerateConfig = async () => {
     try {
@@ -516,7 +530,7 @@ const EPDConfigurationTool: React.FC = () => {
         sdCardPath={sdCardPath}
         setSdCardPath={setSdCardPath}
         onDirectorySelect={setSdCardHandle}
-        disabled={!isSupportedBrowser}
+        disabled={!SDCardPathSettings}
         onError={handleSDCardError}  // 新增錯誤處理函數
       />
 
