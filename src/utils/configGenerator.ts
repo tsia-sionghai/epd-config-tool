@@ -1,28 +1,17 @@
 // src/utils/configGenerator.ts
-import { ModeType, PowerModeType, TimeZoneType, ImageConfig, NetworkConfig } from '../types/common';
+import { 
+  ModeType, 
+  PowerModeType, 
+  TimeZoneType, 
+  ImageConfig, 
+  NetworkConfig,
+  SignageConfig,
+  SignageConfigFile 
+} from '../types/common';
 
-interface SignageConfig {
-  mode: ModeType;
-  powerMode: PowerModeType;
-  timeZone: TimeZoneType;
-  size: string;
-  rotate: number;
-  interval: number;
-  imageCount?: number;
-  wifi?: {
-    mode: string;
-    ssid?: string;
-    password?: string;
-    ip?: string;
-    netmask?: string;
-    gateway?: string;
-    dns?: string;
-  };
-  serverURL?: string;
-  nasURL?: string;
-}
-
+// 生成內部使用的配置
 export const generateConfig = (
+  customer: string,  // 新增 customer 參數
   mode: ModeType,
   powerMode: PowerModeType,
   timeZone: TimeZoneType,
@@ -30,35 +19,54 @@ export const generateConfig = (
   networkConfig?: NetworkConfig
 ): SignageConfig => {
   const baseConfig: SignageConfig = {
-    mode,
-    powerMode,
-    timeZone,
-    size: imageConfig.size,
-    rotate: imageConfig.rotate,
-    interval: imageConfig.interval,
+    Customer: customer,
+    Mode: mode,
+    PowerMode: powerMode,
+    TimeZone: timeZone,
+    SoftAP: "0",
+    Path: "/sdcard/image/slideshow",
+    Size: imageConfig.size,
+    Rotate: imageConfig.rotate,
+    Interval: imageConfig.interval,
+    WifiSetting: "",
+    ServerURL: "",
+    PackageName: "",
+    ActivityName: ""
   };
 
-  if (mode === 'auto' || mode === 'nas') {
-    baseConfig.imageCount = imageConfig.images.length;
-  }
-
+  // 處理網路設定
   if (mode === 'cms' || mode === 'nas') {
-    baseConfig.wifi = networkConfig ? {
-      mode: networkConfig.wifi,
-      ssid: networkConfig.ssid,
-      password: networkConfig.password,
-      ip: networkConfig.ip,
-      netmask: networkConfig.netmask,
-      gateway: networkConfig.gateway,
-      dns: networkConfig.dns,
-    } : undefined;
-
-    if (mode === 'cms' && networkConfig?.serverURL) {
-      baseConfig.serverURL = networkConfig.serverURL;
-    } else if (mode === 'nas' && networkConfig?.nasURL) {
-      baseConfig.nasURL = networkConfig.nasURL;
+    if (networkConfig) {
+      if (networkConfig.wifi === 'staticIP') {
+        baseConfig.WifiSetting = {
+          Mode: networkConfig.wifi,
+          SSID: networkConfig.ssid,
+          Password: networkConfig.password,
+          IP_addr: networkConfig.ip,
+          Netmask: networkConfig.netmask,
+          Gateway: networkConfig.gateway,
+          DNS: networkConfig.dns
+        };
+      } else {
+        baseConfig.WifiSetting = `${networkConfig.ssid}${
+          networkConfig.password ? ',' + networkConfig.password : ''
+        }`;
+      }
+      
+      if (mode === 'cms' && networkConfig.serverURL) {
+        baseConfig.ServerURL = networkConfig.serverURL;
+      }
     }
   }
 
   return baseConfig;
+};
+
+// 新增：轉換為檔案格式的函數
+export const convertToConfigFile = (config: SignageConfig): SignageConfigFile => {
+  return {
+    ...config,
+    Rotate: config.Rotate.toString(),
+    Interval: config.Interval.toString()
+  };
 };
