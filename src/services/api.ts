@@ -1,19 +1,16 @@
 // src/services/api.ts
+import type { UploadResponse } from './api.d';
+
 export const uploadImageToBin = async (
   file: File,
   size: string
-): Promise<{
-  message: string;
-  image_url?: string;
-  bin_url?: string[];
-}> => {
+): Promise<UploadResponse> => {
   try {
     const formData = new FormData();
     formData.append('image', file);
     formData.append('size', size);
     formData.append('parameter', '');
 
-    // 使用 HTTPS URL
     const response = await fetch('https://api.ezread.com.tw/Image/toE6bin', {
       method: 'POST',
       body: formData

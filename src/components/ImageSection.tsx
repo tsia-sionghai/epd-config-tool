@@ -1,6 +1,6 @@
 // src/components/ImageSection.tsx
 import React, { useCallback } from 'react';
-import { Grid, useTheme } from '@mui/material';
+import { Grid, useTheme, SxProps, Theme } from '@mui/material';
 import { useTranslation } from 'react-i18next';
 import HintMessage from './HintMessage';
 import ImageUploader from './ImageUploader';
@@ -11,7 +11,7 @@ interface ImageSectionProps {
   mode: ModeType;
   config: ImageConfig;
   onConfigChange: (updates: Partial<ImageConfig> | ((prev: ImageConfig) => ImageConfig)) => void;
-  sx?: any;
+  sx?: SxProps<Theme>;
 }
 
 const ImageSection: React.FC<ImageSectionProps> = ({ 

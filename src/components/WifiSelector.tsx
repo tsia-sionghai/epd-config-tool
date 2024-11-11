@@ -2,7 +2,6 @@
 import React from 'react';
 import { Select, MenuItem } from '@mui/material';
 import { WifiType } from '../types/common';
-import { useTranslation } from 'react-i18next';
 
 interface WifiSelectorProps {
   value: WifiType;
@@ -10,8 +9,6 @@ interface WifiSelectorProps {
 }
 
 const WifiSelector: React.FC<WifiSelectorProps> = ({ value, onChange }) => {
-  const { t } = useTranslation();
-
   return (
     <Select
       variant="outlined"

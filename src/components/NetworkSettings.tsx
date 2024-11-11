@@ -10,11 +10,9 @@ import SelectorField from './common/SelectorField';
 interface NetworkSettingsProps {
   mode: ModeType;
   config: NetworkConfig;
-  onConfigChange: (config: Partial<NetworkConfig>) => void;
+  onConfigChange: (updates: Partial<NetworkConfig>) => void;
   serverURL: string;
   setServerURL: (url: string) => void;
-  nasURL?: string;
-  setNasURL?: (url: string) => void;
   errors?: {
     ssid?: string;
     password?: string;

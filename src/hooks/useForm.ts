@@ -1,9 +1,9 @@
-import { useState } from 'react';
+import { useState, ChangeEvent } from 'react';
 
-export const useForm = <T extends Record<string, any>>(initialState: T) => {
-  const [values, setValues] = useState(initialState);
+export const useForm = <T extends Record<string, string | number | boolean>>(initialState: T) => {
+  const [values, setValues] = useState<T>(initialState);
 
-  const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChange = (event: ChangeEvent<HTMLInputElement>) => {
     const { name, value } = event.target;
     setValues(prevValues => ({ ...prevValues, [name]: value }));
   };
