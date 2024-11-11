@@ -1,5 +1,5 @@
 // src/utils/fileSystem.ts
-import { ImageFile } from "../types/common";
+import { SignageConfigFile, ImageFile } from "../types/common";
 import { systemFiles, systemFilePatterns } from "../configs/systemFiles";
 import { logUnknownSystemFile } from "./systemFileLogger";
 
@@ -75,13 +75,11 @@ export const createDirectory = async (
 // 修改 createConfigFile 函數使用統一的類型
 export const createConfigFile = async (
   dirHandle: FileSystemDirectoryHandle,
-  config: SignageConfigFile  // 使用統一的配置檔案介面
+  config: SignageConfigFile    // 使用統一的型別
 ) => {
   try {
-    console.log('Creating config file with:', config);
     const configContent = JSON.stringify(config, null, 2);
     await writeFile(dirHandle, 'signage_configure.json', configContent);
-    console.log('Config file created successfully');
   } catch (error) {
     console.error('Error creating config file:', error);
     throw error;

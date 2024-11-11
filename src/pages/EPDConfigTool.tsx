@@ -16,11 +16,7 @@ import {
   PowerModeType,
   TimeZoneType,
   NetworkConfig,
-  ImageConfig,
-  // 新增以下 imports
-  SignageConfig,
-  SignageConfigFile
-} from '../types/common';
+  ImageConfig} from '../types/common';
 import { 
   createConfigFile, 
   createDirectory, 
@@ -466,9 +462,48 @@ const EPDConfigurationTool: React.FC = () => {
   // Additional settings state
   const [serverURL, setServerURL] = useState('https://api.ezread.com.tw/schedule');
   const [nasURL, setNasURL] = useState('');
-
+  
   const handleNetworkConfigChange = (updates: Partial<NetworkConfig>) => {
-    setNetworkConfig(prev => ({ ...prev, ...updates }));
+    setNetworkConfig(prev => {
+      // 如果是更新 wifi 模式
+      if ('wifi' in updates) {
+        const newConfig = { ...prev, ...updates };
+        
+        // 根據新的 wifi 模式重設相關欄位
+        switch (updates.wifi) {
+          case 'open':
+            // Open 模式：清除密碼和網路設定
+            return {
+              ...newConfig,
+              password: '',  // 清除密碼
+              ip: '',       // 清除網路設定
+              netmask: '',
+              gateway: '',
+              dns: ''
+            };
+            
+          case 'wpa2Personal':
+            // WPA2 Personal：清除網路設定
+            return {
+              ...newConfig,
+              ip: '',
+              netmask: '',
+              gateway: '',
+              dns: ''
+            };
+            
+          case 'staticIP':
+            // Static IP：保留所有欄位
+            return newConfig;
+            
+          default:
+            return newConfig;
+        }
+      }
+      
+      // 其他更新直接套用
+      return { ...prev, ...updates };
+    });
   };
 
   const handleImageConfigChange = (

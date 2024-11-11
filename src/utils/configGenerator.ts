@@ -18,7 +18,7 @@ export const generateConfig = (
   imageConfig: ImageConfig,
   networkConfig?: NetworkConfig
 ): SignageConfig => {
-  const baseConfig: SignageConfig = {
+  const config: SignageConfig = {
     Customer: customer,
     Mode: mode,
     PowerMode: powerMode,
@@ -35,37 +35,28 @@ export const generateConfig = (
   };
 
   // 處理網路設定
-  if (mode === 'cms' || mode === 'nas') {
-    if (networkConfig) {
-      if (networkConfig.wifi === 'staticIP') {
-        baseConfig.WifiSetting = {
-          Mode: networkConfig.wifi,
-          SSID: networkConfig.ssid,
-          Password: networkConfig.password,
-          IP_addr: networkConfig.ip,
-          Netmask: networkConfig.netmask,
-          Gateway: networkConfig.gateway,
-          DNS: networkConfig.dns
-        };
-      } else {
-        baseConfig.WifiSetting = `${networkConfig.ssid}${
-          networkConfig.password ? ',' + networkConfig.password : ''
-        }`;
-      }
-      
-      if (mode === 'cms' && networkConfig.serverURL) {
-        baseConfig.ServerURL = networkConfig.serverURL;
-      }
+  if (mode === 'cms' && networkConfig) {
+    // 統一使用 "ssid,password" 格式
+    config.WifiSetting = `${networkConfig.ssid}${networkConfig.password ? ',' + networkConfig.password : ''}`;
+    config.ServerURL = networkConfig.serverURL || "";
+
+    // Static IP 的額外欄位
+    if (networkConfig.wifi === 'staticIP') {
+      config.IP_addr = networkConfig.ip;
+      config.Netmask = networkConfig.netmask;
+      config.Gateway = networkConfig.gateway;
+      config.DNS = networkConfig.dns;
     }
   }
 
-  return baseConfig;
+  return config;
 };
 
 // 新增：轉換為檔案格式的函數
 export const convertToConfigFile = (config: SignageConfig): SignageConfigFile => {
   return {
     ...config,
+    // 確保數值都被轉換為字串
     Rotate: config.Rotate.toString(),
     Interval: config.Interval.toString()
   };
