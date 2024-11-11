@@ -16,23 +16,33 @@ import {
   PowerModeType,
   TimeZoneType,
   NetworkConfig,
-  ImageConfig
+  ImageConfig,
+  // 新增以下 imports
+  SignageConfig,
+  SignageConfigFile
 } from '../types/common';
-import PageHeader from '../components/PageHeader';
-import BasicSettings from '../components/BasicSettings';
-import NetworkSettings from '../components/NetworkSettings';
-import ImageSettings from '../components/ImageSettings';
-import SDCardPathSettings from '../components/SDCardPathSettings';
-import ActionButtons from '../components/ActionButtons';
 import { 
   createConfigFile, 
   createDirectory, 
   copyImages,
   createEmptyFile,
   checkSDCardEmpty,
-  cleanupSDCard} from '../utils/fileSystem';
+  cleanupSDCard
+} from '../utils/fileSystem';
+// 新增 configGenerator 相關 import
+import { 
+  generateConfig, 
+  convertToConfigFile 
+} from '../utils/configGenerator';
 import { uploadImageToBin } from '../services/api';
 import { logFileDetails } from '../utils/diagnostics';
+
+import PageHeader from '../components/PageHeader';
+import BasicSettings from '../components/BasicSettings';
+import NetworkSettings from '../components/NetworkSettings';
+import ImageSettings from '../components/ImageSettings';
+import SDCardPathSettings from '../components/SDCardPathSettings';
+import ActionButtons from '../components/ActionButtons';
 
 // Styled Backdrop
 const StyledBackdrop = styled(Backdrop)(({ theme }) => ({
@@ -130,6 +140,22 @@ const EPDConfigurationTool: React.FC = () => {
     stack?: string;
   }
 
+  const getPlatformInfo = () => {
+    if ('userAgentData' in navigator) {
+      return {
+        platform: navigator.userAgentData?.platform || 'unknown',
+        mobile: navigator.userAgentData?.mobile || false,
+        brands: navigator.userAgentData?.brands || []
+      };
+    }
+    // 降級方案：返回基本資訊
+    return {
+      platform: 'unknown',
+      mobile: /Mobile|Android|iPhone/i.test(navigator.userAgent),
+      brands: []
+    };
+  };
+
   // processImages 需放在 handleGenerateConfig 之前
   const processImages = async (
     images: ImageConfig['images'],
@@ -140,7 +166,7 @@ const EPDConfigurationTool: React.FC = () => {
     console.log('Starting processImages diagnostic:', { 
       imageCount: images.length, 
       size,
-      platform: navigator.platform,
+      platformInfo: getPlatformInfo(),
       userAgent: navigator.userAgent
     });
   
@@ -343,27 +369,20 @@ const EPDConfigurationTool: React.FC = () => {
         setProcessingStatus(t('common.status.creatingFiles'));
         await createEmptyFile(sdCardHandle, 'show_info');
   
-        // 6. 處理圖片（如果是 auto 模式）
+        // 6. 處理圖片（如果是 auto 或 nas 模式）
         if (mode === 'auto' || mode === 'nas') {
+          // 圖片處理邏輯保持不變
           setProcessingStatus(t('common.status.creatingDirectory'));
-          console.log('Creating image directory...');
           const imageDir = await createDirectory(sdCardHandle, 'image/slideshow');
-          console.log('Image directory created');
-  
+          
           try {
-            console.log('Starting image processing...');
             await processImages(
               imageConfig.images,
               imageDir,
               imageConfig.size,
-              (status) => {
-                console.log('Status update:', status);
-                setProcessingStatus(status);
-              }
+              setProcessingStatus
             );
-            console.log('Image processing completed');
           } catch (error) {
-            // 處理圖片過程中的錯誤
             if (isStorageError(error as Error)) {
               setProcessingStatus(t('common.status.cleaningUp'));
               await cleanupSDCard(sdCardHandle, 'storage_error');
@@ -373,47 +392,35 @@ const EPDConfigurationTool: React.FC = () => {
           }
         }
   
-        // 7. 建立設定檔
+        // 7. 建立設定檔 - 這是主要的修改部分
         setProcessingStatus(t('common.status.creatingConfig'));
-        const configData = {
-          Customer: customer,
-          Mode: mode,
-          PowerMode: powerMode,
-          TimeZone: timeZone,
-          SoftAP: "0",
-          Path: "/sdcard/image/slideshow",
-          
-          ...(mode === 'cms' ? {
-            Interval: "180",
-            WifiSetting: `${networkConfig.ssid}${networkConfig.password ? ',' + networkConfig.password : ''}`,
-            ServerURL: serverURL,
-            ...(networkConfig.wifi === 'staticIP' ? {
-              IP_addr: networkConfig.ip,
-              Netmask: networkConfig.netmask,
-              Gateway: networkConfig.gateway,
-              DNS: networkConfig.dns
-            } : {})
-          } : {
-            Interval: imageConfig.interval.toString(),
-            WifiSetting: "",
-            ServerURL: "",
-          }),
-  
-          PackageName: "",
-          ActivityName: "",
-        };
         
-        await createConfigFile(sdCardHandle, configData);
+        // 使用 generateConfig 生成內部配置
+        const internalConfig = generateConfig(
+          customer,
+          mode,
+          powerMode,
+          timeZone,
+          imageConfig,
+          mode === 'cms' ? {
+            ...networkConfig,
+            serverURL: serverURL
+          } : undefined
+        );
+
+        // 轉換為檔案格式
+        const configFile = convertToConfigFile(internalConfig);
+        
+        // 寫入設定檔
+        await createConfigFile(sdCardHandle, configFile);
         setShowSuccess(true);
 
       } catch (error) {
-        // 如果在處理過程中發生錯誤，進行清理
         console.error('Error during process:', error);
         setProcessingStatus(t('common.status.cleaningUp'));
         await cleanupSDCard(sdCardHandle, 'process_error');
         throw error;
       }
-
     } catch (error) {
       console.error('Error in handleGenerateConfig:', error);
       setError({

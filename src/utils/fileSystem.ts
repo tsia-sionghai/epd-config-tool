@@ -72,26 +72,16 @@ export const createDirectory = async (
   }
 };
 
-// 建立 signage_configure.json
+// 修改 createConfigFile 函數使用統一的類型
 export const createConfigFile = async (
   dirHandle: FileSystemDirectoryHandle,
-  config: {
-    Customer: string;
-    Mode: string;
-    PowerMode: string;
-    Interval: string;
-    WifiSetting: string;
-    TimeZone: string;
-    SoftAP: string;
-    Path: string;
-    ServerURL: string;
-    PackageName: string;
-    ActivityName: string;
-  }
+  config: SignageConfigFile  // 使用統一的配置檔案介面
 ) => {
   try {
+    console.log('Creating config file with:', config);
     const configContent = JSON.stringify(config, null, 2);
     await writeFile(dirHandle, 'signage_configure.json', configContent);
+    console.log('Config file created successfully');
   } catch (error) {
     console.error('Error creating config file:', error);
     throw error;
