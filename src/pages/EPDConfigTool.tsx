@@ -1,6 +1,5 @@
 // src/pages/EPDConfigTool.tsx
 import React, { useEffect, useState, useMemo } from 'react';
-import { useTranslation } from 'react-i18next';
 import { 
   Alert, 
   Backdrop, 
@@ -39,6 +38,7 @@ import NetworkSettings from '../components/NetworkSettings';
 import ImageSettings from '../components/ImageSettings';
 import SDCardPathSettings from '../components/SDCardPathSettings';
 import ActionButtons from '../components/ActionButtons';
+import { useTranslation } from 'react-i18next';
 
 // Styled Backdrop
 const StyledBackdrop = styled(Backdrop)(({ theme }) => ({
@@ -567,6 +567,16 @@ const EPDConfigurationTool: React.FC = () => {
         setServerURL={setServerURL}
         nasURL={nasURL}
         setNasURL={setNasURL}
+        errors={{}} // Add appropriate error handling here
+        fieldRefs={{
+          ssid: React.createRef<HTMLInputElement>(),
+          password: React.createRef<HTMLInputElement>(),
+          ip: React.createRef<HTMLInputElement>(),
+          netmask: React.createRef<HTMLInputElement>(),
+          gateway: React.createRef<HTMLInputElement>(),
+          dns: React.createRef<HTMLInputElement>(),
+          serverURL: React.createRef<HTMLInputElement>(),
+        }}
       />
 
       <SDCardPathSettings

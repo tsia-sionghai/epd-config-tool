@@ -15,6 +15,8 @@ interface NetworkSettingsProps {
   onConfigChange: (updates: Partial<NetworkConfig>) => void;
   serverURL: string;
   setServerURL: (url: string) => void;
+  nasURL?: string;  // 移除可選標記,
+  setNasURL?: (url: string) => void;  // 移除可選標記,
   errors: {  // 移除可選標記
     ssid?: string;
     password?: string;
@@ -41,6 +43,8 @@ const NetworkSettings: React.FC<NetworkSettingsProps> = ({
   onConfigChange,
   serverURL,
   setServerURL,
+  nasURL,
+  setNasURL,
   errors = {},
   // 提供完整的預設值
   fieldRefs = {
