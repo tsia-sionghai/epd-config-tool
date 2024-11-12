@@ -10,5 +10,3 @@ export const logUnknownSystemFile = (fileName: string, osInfo?: string) => {
   unknownSystemFiles.add(JSON.stringify(logEntry));
   console.warn('Potential unknown system file:', logEntry);
 };
-
-export const getUnknownSystemFiles = () => Array.from(unknownSystemFiles);
