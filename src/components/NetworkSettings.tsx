@@ -1,11 +1,12 @@
 // src/components/NetworkSettings.tsx
 import React from 'react';
 import { Grid, Paper, Typography } from '@mui/material';
-import { useTranslation } from 'react-i18next';
 import { ModeType, NetworkConfig } from '../types/common';
+import { shouldShowNetworkSettings } from '../utils/modeHelpers';
 import WifiSelector from './WifiSelector';
 import FormField from './common/FormField';
 import SelectorField from './common/SelectorField';
+import { useTranslation } from 'react-i18next';
 
 interface NetworkSettingsProps {
   mode: ModeType;
@@ -45,6 +46,10 @@ const NetworkSettings: React.FC<NetworkSettingsProps> = ({
   fieldRefs = {},
 }) => {
   const { t } = useTranslation();
+
+  if (!shouldShowNetworkSettings(mode)) {
+    return null;
+  }
 
   if (mode === 'auto') return null;
 

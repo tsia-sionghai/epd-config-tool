@@ -1,5 +1,6 @@
 // src/services/api.ts
 import type { UploadResponse } from './api.d';
+import { handleApiError } from '../utils/errorHandler';
 
 export const uploadImageToBin = async (
   file: File,
@@ -29,7 +30,7 @@ export const uploadImageToBin = async (
     return data;
 
   } catch (error) {
-    console.error('Error in uploadImageToBin:', error);
+    handleApiError(error);  // 加入錯誤處理
     throw error;
   }
 };
