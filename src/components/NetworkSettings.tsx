@@ -1,9 +1,10 @@
 // src/components/NetworkSettings.tsx
-import React from 'react';
+import React, { createRef } from 'react';
 import { Grid, Paper, Typography } from '@mui/material';
 import { ModeType, NetworkConfig } from '../types/common';
 import { shouldShowNetworkSettings } from '../utils/modeHelpers';
 import WifiSelector from './WifiSelector';
+import StaticIPFields from './StaticIPFields';
 import FormField from './common/FormField';
 import SelectorField from './common/SelectorField';
 import { useTranslation } from 'react-i18next';
@@ -14,7 +15,7 @@ interface NetworkSettingsProps {
   onConfigChange: (updates: Partial<NetworkConfig>) => void;
   serverURL: string;
   setServerURL: (url: string) => void;
-  errors?: {
+  errors: {  // 移除可選標記
     ssid?: string;
     password?: string;
     ip?: string;
@@ -23,7 +24,7 @@ interface NetworkSettingsProps {
     dns?: string;
     serverURL?: string;
   };
-  fieldRefs?: {
+  fieldRefs: {  // 移除可選標記
     ssid: React.RefObject<HTMLInputElement>;
     password: React.RefObject<HTMLInputElement>;
     ip: React.RefObject<HTMLInputElement>;
@@ -40,10 +41,17 @@ const NetworkSettings: React.FC<NetworkSettingsProps> = ({
   onConfigChange,
   serverURL,
   setServerURL,
-  nasURL,
-  setNasURL,
   errors = {},
-  fieldRefs = {},
+  // 提供完整的預設值
+  fieldRefs = {
+    ssid: createRef<HTMLInputElement>(),
+    password: createRef<HTMLInputElement>(),
+    ip: createRef<HTMLInputElement>(),
+    netmask: createRef<HTMLInputElement>(),
+    gateway: createRef<HTMLInputElement>(),
+    dns: createRef<HTMLInputElement>(),
+    serverURL: createRef<HTMLInputElement>()
+  },
 }) => {
   const { t } = useTranslation();
 
@@ -51,10 +59,22 @@ const NetworkSettings: React.FC<NetworkSettingsProps> = ({
     return null;
   }
 
-  if (mode === 'auto') return null;
-
   const handleFieldChange = (field: keyof NetworkConfig, value: string) => {
     onConfigChange({ ...config, [field]: value });
+  };
+
+  const staticIPErrors = {
+    ip: errors.ip,
+    netmask: errors.netmask,
+    gateway: errors.gateway,
+    dns: errors.dns
+  };
+
+  const staticIPRefs = {
+    ip: fieldRefs.ip,
+    netmask: fieldRefs.netmask,
+    gateway: fieldRefs.gateway,
+    dns: fieldRefs.dns
   };
 
   return (
@@ -100,51 +120,12 @@ const NetworkSettings: React.FC<NetworkSettingsProps> = ({
         )}
 
         {config.wifi === 'staticIP' && (
-          <>
-            <Grid item xs={12}>
-              <FormField
-                label={t('common.label.ip')}
-                value={config.ip}
-                onChange={(value) => handleFieldChange('ip', value)}
-                error={errors.ip}
-                placeholder={t('common.placeholder.ip')}
-                inputRef={fieldRefs.ip}
-              />
-            </Grid>
-
-            <Grid item xs={12}>
-              <FormField
-                label={t('common.label.netmask')}
-                value={config.netmask}
-                onChange={(value) => handleFieldChange('netmask', value)}
-                error={errors.netmask}
-                placeholder={t('common.placeholder.netmask')}
-                inputRef={fieldRefs.netmask}
-              />
-            </Grid>
-
-            <Grid item xs={12}>
-              <FormField
-                label={t('common.label.gateway')}
-                value={config.gateway}
-                onChange={(value) => handleFieldChange('gateway', value)}
-                error={errors.gateway}
-                placeholder={t('common.placeholder.gateway')}
-                inputRef={fieldRefs.gateway}
-              />
-            </Grid>
-
-            <Grid item xs={12}>
-              <FormField
-                label={t('common.label.dns')}
-                value={config.dns}
-                onChange={(value) => handleFieldChange('dns', value)}
-                error={errors.dns}
-                placeholder={t('common.placeholder.dns')}
-                inputRef={fieldRefs.dns}
-              />
-            </Grid>
-          </>
+          <StaticIPFields
+            config={config}
+            onFieldChange={handleFieldChange}
+            errors={staticIPErrors}
+            fieldRefs={staticIPRefs}
+          />
         )}
 
         {mode === 'cms' && (
