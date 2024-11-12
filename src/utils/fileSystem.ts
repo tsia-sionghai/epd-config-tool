@@ -148,7 +148,12 @@ export const copyImages = async (
   }
 };
 
-// 下載並儲存 bin 檔案
+/**
+ * Downloads and saves bin files for NAS mode.
+ * @TODO: Will be implemented in NAS mode feature development
+ * @param urls Array of bin file URLs to download
+ * @param targetDir Target directory to save the files
+ */
 export const downloadAndSaveBinFiles = async (
   urls: string[],
   targetDir: FileSystemDirectoryHandle

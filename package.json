@@ -11,7 +11,7 @@
     "lint": "eslint src --ext ts,tsx",
     "type-check": "tsc --noEmit",
     "clean": "rimraf dist",
-    "find-unused": "ts-prune"
+    "find-unused": "ts-prune --ignore 'src/utils/fileSystem.ts:downloadAndSaveBinFiles'"
   },
   "dependencies": {
     "@emotion/react": "^11.13.3",
