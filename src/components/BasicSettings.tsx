@@ -55,8 +55,7 @@ const BasicSettings: React.FC<BasicSettingsProps> = ({
           <SelectorField label={t('common.label.mode')}>
             <ModeSelector 
               value={mode} 
-              onChange={setMode} 
-              disabledModes={['nas']}
+              onChange={setMode}
             />
           </SelectorField>
         </Grid>

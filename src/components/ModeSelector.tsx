@@ -1,6 +1,6 @@
 // src/components/ModeSelector.tsx
 import React from 'react';
-import { Grid, Tooltip } from '@mui/material';
+import { Grid } from '@mui/material';
 import SelectableButton from './common/SelectableButton';
 import { ModeType } from '../types/common';
 import { 
@@ -51,23 +51,15 @@ const ModeSelector: React.FC<ModeSelectorProps> = ({
       </Grid>
       
       <Grid item xs={4}>
-        <Tooltip 
-          title={t('common.tooltip.nasNotAvailable')}
-          placement="top"
-          arrow
+        <SelectableButton
+          selected={value === 'nas'}
+          onClick={() => onChange('nas')}
+          icon={<NASModeIcon />}
+          description={t('mode.nas.description')}
+          disabled={disabledModes.includes('nas')}
         >
-          <span>
-            <SelectableButton
-              selected={value === 'nas'}
-              onClick={() => onChange('nas')}
-              icon={<NASModeIcon />}
-              description={t('mode.nas.description')}
-              disabled={disabledModes.includes('nas')}
-            >
-              {t('mode.nas.title')}
-            </SelectableButton>
-          </span>
-        </Tooltip>
+          {t('mode.nas.title')}
+        </SelectableButton>
       </Grid>
     </Grid>
   );
