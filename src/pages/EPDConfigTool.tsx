@@ -224,6 +224,7 @@ const EPDConfigurationTool: React.FC = () => {
           const result = await uploadImageToBin(newFile, size);
           console.log('Upload result:', result);
   
+          // 修改 processImages 函數中處理 bin 檔案的部分
           if (result.bin_url && result.bin_url.length > 0) {
             const downloadStatus = t('common.status.downloadingBinFiles', { 
               current: index + 1, 
@@ -231,9 +232,11 @@ const EPDConfigurationTool: React.FC = () => {
             });
             console.log(downloadStatus);
             setStatus(downloadStatus);
-          
-            for (const url of result.bin_url) {
+
+            // 處理每個 bin 檔案
+            for (let binIndex = 0; binIndex < result.bin_url.length; binIndex++) {
               try {
+                const url = result.bin_url[binIndex];
                 // 將 HTTP URL 轉換為 HTTPS
                 const secureUrl = url.replace('http://', 'https://');
                 console.log('Downloading bin file:', secureUrl);
@@ -244,11 +247,15 @@ const EPDConfigurationTool: React.FC = () => {
                 }
                 
                 const blob = await response.blob();
-                const fileName = secureUrl.split('/').pop() || `${(index + 1).toString()}.bin`;
-                await writeFile(imageDir, fileName, blob);
-                console.log('Saved bin file:', fileName);
+                
+                // 新的命名邏輯：使用圖片序號_bin序號的格式
+                const imageNumber = index + 1;  // 圖片序號（從1開始）
+                const binFileName = `${imageNumber}_${binIndex}.bin`;
+                
+                await writeFile(imageDir, binFileName, blob);
+                console.log(`Saved bin file as: ${binFileName}`);
               } catch (error) {
-                console.error(`Error processing bin file ${url}:`, error);
+                console.error(`Error processing bin file ${binIndex} for image ${index + 1}:`, error);
                 throw error;
               }
             }
