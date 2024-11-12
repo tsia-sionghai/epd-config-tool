@@ -137,13 +137,14 @@ const EPDConfigurationTool: React.FC = () => {
   }
 
   const getPlatformInfo = () => {
-    if ('userAgentData' in navigator) {
+    if ('userAgentData' in navigator && navigator.userAgentData) {
       return {
-        platform: navigator.userAgentData?.platform || 'unknown',
-        mobile: navigator.userAgentData?.mobile || false,
-        brands: navigator.userAgentData?.brands || []
+        platform: navigator.userAgentData.platform || 'unknown',
+        mobile: navigator.userAgentData.mobile || false,
+        brands: navigator.userAgentData.brands || []
       };
     }
+    
     // 降級方案：返回基本資訊
     return {
       platform: 'unknown',
