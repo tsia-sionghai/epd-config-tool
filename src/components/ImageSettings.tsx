@@ -2,7 +2,7 @@
 import React from 'react';
 import { Grid, Paper, Typography } from '@mui/material';
 import { useTranslation } from 'react-i18next';
-import { ModeType, ImageConfig } from '../types/common';
+import { ModeType, ImageConfig, PowerModeType, TimeZoneType } from '../types/common';
 import SizeSelector from './SizeSelector';
 import RotateSelector from './RotateSelector';
 import IntervalSelector from './IntervalSelector';
@@ -13,6 +13,10 @@ interface ImageSettingsProps {
   mode: ModeType;
   config: ImageConfig;
   onConfigChange: (updates: Partial<ImageConfig> | ((prev: ImageConfig) => ImageConfig)) => void;
+  // 新增需要的 props
+  customer: string;
+  powerMode: PowerModeType;
+  timeZone: TimeZoneType;
 }
 
 const ImageSettings: React.FC<ImageSettingsProps> = ({
@@ -24,6 +28,9 @@ const ImageSettings: React.FC<ImageSettingsProps> = ({
     images: []
   },
   onConfigChange,
+  customer,
+  powerMode,
+  timeZone
 }) => {
   const { t } = useTranslation();
 
@@ -73,6 +80,10 @@ const ImageSettings: React.FC<ImageSettingsProps> = ({
                   mode={mode}
                   config={config}
                   onConfigChange={onConfigChange}
+                  // 傳遞新增的 props
+                  customer={customer}
+                  powerMode={powerMode}
+                  timeZone={timeZone}
                 />
               </SelectorField>
             </Grid>

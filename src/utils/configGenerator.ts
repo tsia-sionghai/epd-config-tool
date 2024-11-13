@@ -11,7 +11,7 @@ import {
 
 // 生成內部使用的配置
 export const generateConfig = (
-  customer: string,  // 新增 customer 參數
+  customer: string,
   mode: ModeType,
   powerMode: PowerModeType,
   timeZone: TimeZoneType,
@@ -34,13 +34,11 @@ export const generateConfig = (
     ActivityName: ""
   };
 
-  // 處理網路設定
+  // 只在 CMS 模式時處理網路設定
   if (mode === 'cms' && networkConfig) {
-    // 統一使用 "ssid,password" 格式
     config.WifiSetting = `${networkConfig.ssid}${networkConfig.password ? ',' + networkConfig.password : ''}`;
     config.ServerURL = networkConfig.serverURL || "";
 
-    // Static IP 的額外欄位
     if (networkConfig.wifi === 'staticIP') {
       config.IP_addr = networkConfig.ip;
       config.Netmask = networkConfig.netmask;
@@ -48,7 +46,7 @@ export const generateConfig = (
       config.DNS = networkConfig.dns;
     }
   }
-
+  
   return config;
 };
 

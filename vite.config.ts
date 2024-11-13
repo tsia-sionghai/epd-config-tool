@@ -1,21 +1,22 @@
 // vite.config.ts
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
+import autoprefixer from 'autoprefixer';
 
 export default defineConfig({
   plugins: [react()],
   resolve: {
-    extensions: ['.tsx', '.ts', '.jsx', '.js']  // 優先使用 TypeScript 檔案
+    extensions: ['.tsx', '.ts', '.jsx', '.js']
   },
   build: {
-    sourcemap: true,  // 方便除錯
-    cssTarget: 'chrome61',  // 增加 CSS 目標瀏覽器
+    sourcemap: true,
+    cssTarget: 'chrome61',
     cssMinify: true,
   },
   css: {
     postcss: {
       plugins: [
-        require('autoprefixer')({
+        autoprefixer({
           overrideBrowserslist: [
             '> 1%',
             'last 2 versions',

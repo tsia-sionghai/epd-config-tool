@@ -564,6 +564,10 @@ const EPDConfigurationTool: React.FC = () => {
         mode={mode}
         config={imageConfig}
         onConfigChange={handleImageConfigChange}
+        // 新增需要的 props
+        customer={customer}
+        powerMode={powerMode}
+        timeZone={timeZone}
       />
 
       <NetworkSettings

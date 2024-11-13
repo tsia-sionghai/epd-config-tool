@@ -1,28 +1,39 @@
 // src/components/ImageSection.tsx
-import React, { useCallback } from 'react';
+import React, { useCallback, useState } from 'react';
 import { Grid, useTheme, SxProps, Theme } from '@mui/material';
 import { useTranslation } from 'react-i18next';
 import HintMessage from './HintMessage';
 import ImageUploader from './ImageUploader';
 import CustomButton from './common/CustomButton';
-import { ModeType, ImageConfig, ImageFile } from '../types/common';
+import { ModeType, ImageConfig, ImageFile, PowerModeType, TimeZoneType } from '../types/common';
+import { createEPosterPackage } from '../utils/zipUtils';
 
 interface ImageSectionProps {
   mode: ModeType;
   config: ImageConfig;
   onConfigChange: (updates: Partial<ImageConfig> | ((prev: ImageConfig) => ImageConfig)) => void;
   sx?: SxProps<Theme>;
+  customer: string;
+  powerMode: PowerModeType;
+  timeZone: TimeZoneType;
 }
 
 const ImageSection: React.FC<ImageSectionProps> = ({ 
   mode, 
   config,
   onConfigChange,
-  sx 
+  sx,
+  customer,
+  powerMode,
+  timeZone
 }) => {
   const { t } = useTranslation();
   const theme = useTheme();
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [processingStatus, setProcessingStatus] = useState<string>('');
+  const [error, setError] = useState<string | null>(null);
 
+  // 保持原有的 handleImagesChange
   const handleImagesChange = useCallback((newImages: ImageFile[] | ((prev: ImageFile[]) => ImageFile[])) => {
     if (typeof newImages === 'function') {
       onConfigChange(prevConfig => ({
@@ -34,9 +45,53 @@ const ImageSection: React.FC<ImageSectionProps> = ({
     }
   }, [onConfigChange]);
 
-  const handleDownloadBinary = useCallback(() => {
-    console.log('Downloading binary...');
-  }, []);
+  // 修改下載處理函數
+  const handleDownloadBinary = useCallback(async () => {
+    try {
+      setIsProcessing(true);
+      setError(null);
+      setProcessingStatus(t('common.status.preparing'));
+
+      const configData = {
+        Customer: customer,
+        Mode: mode,
+        PowerMode: powerMode,
+        TimeZone: timeZone,
+        SoftAP: "0",
+        Path: "/sdcard/image/slideshow",
+        Size: config.size,
+        Rotate: config.rotate.toString(),
+        Interval: config.interval.toString(),
+        WifiSetting: "",
+        ServerURL: "",
+        PackageName: "",
+        ActivityName: ""
+      };
+
+      const zipBlob = await createEPosterPackage(
+        configData, 
+        config.images,
+        (status) => setProcessingStatus(t(status))
+      );
+
+      // 觸發下載
+      const url = URL.createObjectURL(zipBlob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'ePoster.zip';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+
+    } catch (err) {
+      console.error('Download failed:', err);
+      setError(t('common.error.downloadFailed'));
+    } finally {
+      setIsProcessing(false);
+      setProcessingStatus('');
+    }
+  }, [customer, mode, powerMode, timeZone, config, t]);
 
   return (
     <>
@@ -65,13 +120,31 @@ const ImageSection: React.FC<ImageSectionProps> = ({
               <CustomButton 
                 onClick={handleDownloadBinary}
                 fullWidth
+                disabled={isProcessing}
               >
-                {t('common.button.downloadBinary')}
+                {isProcessing 
+                  ? processingStatus || t('common.status.processing')
+                  : t('common.button.downloadBinary')
+                }
               </CustomButton>
             </Grid>
           </Grid>
 
-          <Grid item container spacing={2} sx={{ mt: 1 }}>
+          {error && (
+            <Grid item container spacing={2} sx={{ mt: 1 }}>
+              <Grid item xs={12}>
+                <HintMessage
+                  type="error"
+                  message={error}
+                  typographySx={{ 
+                    color: theme.palette.error.main
+                  }}
+                />
+              </Grid>
+            </Grid>
+          )}
+
+          <Grid item container spacing={2} sx={{ mt: 0 }}>
             <Grid item xs={12}>
               <HintMessage
                 type="error"
