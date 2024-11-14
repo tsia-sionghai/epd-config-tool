@@ -77,8 +77,22 @@
       "cleaningUp": "清理檔案...",
       "estimatingSpace": "計算所需空間..."
     },
+    "nasStatus": {
+      "preparing": "準備中...",
+      "creatingConfig": "建立設定檔案中...",
+      "creatingFiles": "建立檔案中...",
+      "creatingDirectory": "建立目錄中...",
+      "copyingImages": "複製圖片中...",
+      "processingImages": "處理圖片中...",
+      "uploadingImage": "上傳圖片 {{current}}/{{total}}: {{name}}",
+      "downloadingBinFiles": "下載播放檔案 {{current}}/{{total}}...",
+      "creatingZip": "壓縮檔案中...",
+      "calculatingHash": "計算檔案雜湊值...",
+      "processing": "處理中..."
+    },
     "success": {
-      "configGenerated": "已成功產生設定檔案"
+      "configGenerated": "已成功產生設定檔案",
+      "downloadSuccess": "已成功下載播放檔案"
     },
     "error": {
       "browserNotSupportedTitle": "瀏覽器不支援",

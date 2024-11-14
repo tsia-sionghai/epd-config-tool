@@ -5,86 +5,113 @@ import { uploadImageToBin } from '../services/api';
 
 // 簡單的雜湊生成函數
 const generateSimpleHash = (): string => {
-  const timestamp = Date.now();
-  const random = Math.random().toString(36).substring(7);
-  return `${timestamp.toString(16)}${random}`;
+ const timestamp = Date.now();
+ const random = Math.random().toString(36).substring(7);
+ return `${timestamp.toString(16)}${random}`;
 };
 
+// 定義進度參數的介面
+interface ProgressParams {
+ current?: number;
+ total?: number;
+ name?: string;
+}
+
 export const createEPosterPackage = async (
-  config: SignageConfigFile,
-  images: ImageConfig['images'],
-  onProgress?: (message: string) => void
+ config: SignageConfigFile,
+ images: ImageConfig['images'],
+ onProgress?: (message: string, params?: ProgressParams) => void
 ): Promise<Blob> => {
-  const updateProgress = (message: string) => {
-    onProgress?.(message);
-    console.log(message);
-  };
+ const updateProgress = (message: string, params?: ProgressParams) => {
+   onProgress?.('common.nasStatus.' + message, params);
+   console.log('Progress:', message, params);
+ };
 
-  const zip = new JSZip();
-  
-  try {
-    // 1. 加入設定檔
-    updateProgress('Creating configuration file...');
-    zip.file('signage_configure.json', JSON.stringify(config, null, 2));
+ const zip = new JSZip();
+ 
+ try {
+   // 1. 準備
+   updateProgress('preparing');
 
-    // 2. 加入空的 show_info
-    zip.file('show_info', '');
+   // 2. 加入設定檔
+   updateProgress('creatingConfig');
+   zip.file('signage_configure.json', JSON.stringify(config, null, 2));
 
-    // 3. 創建圖片目錄
-    const imageFolder = zip.folder('image/slideshow');
-    if (!imageFolder) throw new Error('Failed to create image folder');
+   // 3. 加入空的 show_info
+   updateProgress('creatingFiles');
+   zip.file('show_info', '');
 
-    // 4. 處理每張圖片和對應的 bin 檔案
-    for (let i = 0; i < images.length; i++) {
-      const image = images[i];
-      const extension = image.name.split('.').pop() || '';
-      const imageNumber = i + 1;
-      const newFileName = `${imageNumber}.${extension}`;
+   // 4. 創建圖片目錄
+   updateProgress('creatingDirectory');
+   const imageFolder = zip.folder('image/slideshow');
+   if (!imageFolder) throw new Error('建立目錄失敗');
 
-      // 複製圖片
-      updateProgress(`Processing image ${imageNumber}/${images.length}...`);
-      const imageBlob = await image.file.arrayBuffer();
-      imageFolder.file(newFileName, imageBlob);
+   // 5. 處理每張圖片和對應的 bin 檔案
+   const totalImages = images.length;
+   for (let i = 0; i < totalImages; i++) {
+     const image = images[i];
+     const extension = image.name.split('.').pop() || '';
+     const imageNumber = i + 1;
+     const newFileName = `${imageNumber}.${extension}`;
 
-      // 處理 bin 檔案
-      updateProgress(`Converting image ${imageNumber}/${images.length}...`);
-      const binResult = await uploadImageToBin(image.file, config.Size);
+     // 複製圖片
+     updateProgress('copyingImages');
+     const imageBlob = await image.file.arrayBuffer();
+     imageFolder.file(newFileName, imageBlob);
 
-      if (binResult.bin_url && binResult.bin_url.length > 0) {
-        updateProgress(`Downloading bin files for image ${imageNumber}/${images.length}...`);
-        
-        for (let binIndex = 0; binIndex < binResult.bin_url.length; binIndex++) {
-          const url = binResult.bin_url[binIndex];
-          const secureUrl = url.replace('http://', 'https://');
-          const response = await fetch(secureUrl);
-          
-          if (!response.ok) {
-            throw new Error(`Failed to download bin file: ${secureUrl}`);
-          }
-          
-          const binContent = await response.blob();
-          const binFileName = `${imageNumber}_${binIndex}.bin`;
-          imageFolder.file(binFileName, binContent);
-        }
-      }
-    }
+     // 處理圖片
+     updateProgress('processingImages');
 
-    // 5. 生成 ZIP
-    updateProgress('Creating ZIP file...');
-    const mainZipBlob = await zip.generateAsync({ type: 'blob' });
+     // 上傳圖片取得 bin 檔案
+     updateProgress('uploadingImage', {
+       current: imageNumber,
+       total: totalImages,
+       name: newFileName
+     });
 
-    // 6. 生成簡單的雜湊值
-    const hash = generateSimpleHash();
+     const binResult = await uploadImageToBin(image.file, config.Size);
 
-    // 7. 創建最終的 ZIP（包含雜湊檔案）
-    const finalZip = new JSZip();
-    await finalZip.loadAsync(mainZipBlob);
-    finalZip.file('ePoster.zip.md5', hash);
+     if (binResult.bin_url && binResult.bin_url.length > 0) {
+       const totalBins = binResult.bin_url.length;
+       for (let binIndex = 0; binIndex < totalBins; binIndex++) {
+         // 下載 bin 檔案
+         updateProgress('downloadingBinFiles', {
+          current: binIndex + 1,  // 當前 bin 檔案序號（從1開始）
+          total: totalBins       // 該圖片的 bin 檔案總數
+        });
 
-    return await finalZip.generateAsync({ type: 'blob' });
+         const url = binResult.bin_url[binIndex];
+         const secureUrl = url.replace('http://', 'https://');
+         const response = await fetch(secureUrl);
+         
+         if (!response.ok) {
+           throw new Error('下載播放檔案失敗');
+         }
+         
+         const binContent = await response.blob();
+         const binFileName = `${imageNumber}_${binIndex}.bin`;
+         imageFolder.file(binFileName, binContent);
+       }
+     }
+   }
 
-  } catch (error) {
-    console.error('Error creating ePoster package:', error);
-    throw error instanceof Error ? error : new Error('Failed to create ePoster package');
-  }
+   // 6. 生成主要的 ZIP
+   updateProgress('creatingZip');
+   const mainZipBlob = await zip.generateAsync({ type: 'blob' });
+
+   // 7. 計算雜湊值
+   updateProgress('calculatingHash');
+   const hash = generateSimpleHash();
+
+   // 8. 創建最終的 ZIP（包含雜湊檔案）
+   const finalZip = new JSZip();
+   await finalZip.loadAsync(mainZipBlob);
+   finalZip.file('ePoster.zip.md5', hash);
+
+   return await finalZip.generateAsync({ type: 'blob' });
+
+ } catch (error) {
+   console.error('建立 ePoster 壓縮檔時發生錯誤:', error);
+   throw error instanceof Error ? error : new Error('下載播放檔案失敗');
+ }
 };

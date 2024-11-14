@@ -1,12 +1,34 @@
 // src/components/ImageSection.tsx
 import React, { useCallback, useState } from 'react';
-import { Grid, useTheme, SxProps, Theme } from '@mui/material';
-import { useTranslation } from 'react-i18next';
+import { 
+  Grid, 
+  useTheme, 
+  SxProps, 
+  Theme,
+  Backdrop,
+  CircularProgress,
+  Typography,
+  Snackbar,
+  Alert
+} from '@mui/material';
+import { styled } from '@mui/material/styles';
 import HintMessage from './HintMessage';
 import ImageUploader from './ImageUploader';
 import CustomButton from './common/CustomButton';
 import { ModeType, ImageConfig, ImageFile, PowerModeType, TimeZoneType } from '../types/common';
 import { createEPosterPackage } from '../utils/zipUtils';
+import { useTranslation } from 'react-i18next';
+import { TOptionsBase } from 'i18next';
+
+// Styled Backdrop - 與 EPDConfigTool 相同的樣式
+const StyledBackdrop = styled(Backdrop)(({ theme }) => ({
+  zIndex: theme.zIndex.drawer + 1,
+  color: '#fff',
+  backgroundColor: 'rgba(0, 0, 0, 0.7)',
+  display: 'flex',
+  flexDirection: 'column',
+  gap: theme.spacing(2),
+}));
 
 interface ImageSectionProps {
   mode: ModeType;
@@ -32,8 +54,8 @@ const ImageSection: React.FC<ImageSectionProps> = ({
   const [isProcessing, setIsProcessing] = useState(false);
   const [processingStatus, setProcessingStatus] = useState<string>('');
   const [error, setError] = useState<string | null>(null);
+  const [showSuccess, setShowSuccess] = useState(false);
 
-  // 保持原有的 handleImagesChange
   const handleImagesChange = useCallback((newImages: ImageFile[] | ((prev: ImageFile[]) => ImageFile[])) => {
     if (typeof newImages === 'function') {
       onConfigChange(prevConfig => ({
@@ -45,12 +67,16 @@ const ImageSection: React.FC<ImageSectionProps> = ({
     }
   }, [onConfigChange]);
 
-  // 修改下載處理函數
   const handleDownloadBinary = useCallback(async () => {
     try {
+      // 驗證是否有選擇圖片
+      if (!config.images.length) {
+        setError(t('common.error.noImagesSelected'));
+        return;
+      }
+
       setIsProcessing(true);
       setError(null);
-      setProcessingStatus(t('common.status.preparing'));
 
       const configData = {
         Customer: customer,
@@ -71,9 +97,11 @@ const ImageSection: React.FC<ImageSectionProps> = ({
       const zipBlob = await createEPosterPackage(
         configData, 
         config.images,
-        (status) => setProcessingStatus(t(status))
+        (status, params) => setProcessingStatus(
+          t(status, params ? { ...params, interpolation: { escapeValue: false } } : undefined)
+        )
       );
-
+      
       // 觸發下載
       const url = URL.createObjectURL(zipBlob);
       const a = document.createElement('a');
@@ -83,6 +111,8 @@ const ImageSection: React.FC<ImageSectionProps> = ({
       a.click();
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
+
+      setShowSuccess(true);
 
     } catch (err) {
       console.error('Download failed:', err);
@@ -122,10 +152,7 @@ const ImageSection: React.FC<ImageSectionProps> = ({
                 fullWidth
                 disabled={isProcessing}
               >
-                {isProcessing 
-                  ? processingStatus || t('common.status.processing')
-                  : t('common.button.downloadBinary')
-                }
+                {t('common.button.downloadBinary')}
               </CustomButton>
             </Grid>
           </Grid>
@@ -155,6 +182,48 @@ const ImageSection: React.FC<ImageSectionProps> = ({
               />
             </Grid>
           </Grid>
+
+          {/* Processing Backdrop */}
+          <StyledBackdrop open={isProcessing}>
+            <CircularProgress color="inherit" size={60} />
+            <Typography variant="h6" component="div">
+              {processingStatus || t('common.status.processing')}
+            </Typography>
+          </StyledBackdrop>
+
+          {/* Error Snackbar */}
+          <Snackbar
+            open={!!error}
+            autoHideDuration={6000}
+            onClose={() => setError(null)}
+            anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+          >
+            <Alert 
+              onClose={() => setError(null)}
+              severity="error"
+              variant="filled"
+              sx={{ width: '100%' }}
+            >
+              {error}
+            </Alert>
+          </Snackbar>
+
+          {/* Success Snackbar */}
+          <Snackbar
+            open={showSuccess}
+            autoHideDuration={6000}
+            onClose={() => setShowSuccess(false)}
+            anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+          >
+            <Alert 
+              onClose={() => setShowSuccess(false)}
+              severity="success"
+              variant="filled"
+              sx={{ width: '100%' }}
+            >
+              {t('common.success.downloadSuccess')}
+            </Alert>
+          </Snackbar>
         </>
       )}
     </>
