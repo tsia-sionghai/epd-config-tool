@@ -273,7 +273,7 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
                               <CloseIcon />
                             </DeleteButton>
                           </DraggablePreview>
-                          <SequenceNumber>
+                          <SequenceNumber sx={{ mt: 0 }}>
                             {index + 1}
                           </SequenceNumber>
                         </DraggableItem>

@@ -154,7 +154,7 @@ const ImageSection: React.FC<ImageSectionProps> = ({
 
       {mode === 'nas' && (
         <>
-          <Grid item container spacing={2} sx={{ mt: 1 }}>
+          <Grid item container spacing={2} sx={{ mt: 0 }}>
             <Grid item xs={12}>
               <CustomButton 
                 onClick={handleDownloadBinary}
@@ -165,20 +165,6 @@ const ImageSection: React.FC<ImageSectionProps> = ({
               </CustomButton>
             </Grid>
           </Grid>
-
-          {error && (
-            <Grid item container spacing={2} sx={{ mt: 1 }}>
-              <Grid item xs={12}>
-                <HintMessage
-                  type="error"
-                  message={error}
-                  typographySx={{ 
-                    color: theme.palette.error.main
-                  }}
-                />
-              </Grid>
-            </Grid>
-          )}
 
           <Grid item container spacing={2} sx={{ mt: 0 }}>
             <Grid item xs={12}>
