@@ -22,7 +22,7 @@ interface ImageSettingsProps {
 const ImageSettings: React.FC<ImageSettingsProps> = ({
   mode,
   config = {
-    size: '13.3',
+    size: '31.5',
     rotate: 0,
     interval: 180,
     images: []
