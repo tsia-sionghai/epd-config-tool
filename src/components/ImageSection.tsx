@@ -68,19 +68,19 @@ const ImageSection: React.FC<ImageSectionProps> = ({
     }
   }, [onConfigChange]);
 
+  // src/components/ImageSection.tsx
   const handleDownloadBinary = useCallback(async () => {
     try {
-      // 驗證是否有選擇圖片
       if (!config.images.length) {
         setError(t('common.error.noImagesSelected'));
         return;
       }
-
+  
       setIsProcessing(true);
       setError(null);
-      setProgress(0);  // 重置進度
-      setProcessingStatus(t('common.status.preparing'));  // 重設狀態
-
+      setProgress(0);
+      setProcessingStatus(t('common.status.preparing'));
+  
       const configData = {
         Customer: customer,
         Mode: mode,
@@ -96,41 +96,47 @@ const ImageSection: React.FC<ImageSectionProps> = ({
         PackageName: "",
         ActivityName: ""
       };
-
-      const zipBlob = await createEPosterPackage(
+  
+      const result = await createEPosterPackage(
         configData, 
         config.images,
-        (status, params) => {
-          setProcessingStatus(
-            t(status, params ? { ...params, interpolation: { escapeValue: false } } : undefined)
-          );
-          if (params?.percent !== undefined) {
-            setProgress(params.percent);  // 更新進度
-          }
-        }
+        (status, params) => setProcessingStatus(
+          t(status, params ? { ...params, interpolation: { escapeValue: false } } : undefined)
+        )
       );
-
-      // 觸發下載
-      const url = URL.createObjectURL(zipBlob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = 'ePoster.zip';
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-
+  
+      // 下載 ZIP 檔案
+      const zipUrl = URL.createObjectURL(result.zipBlob);
+      const zipLink = document.createElement('a');
+      zipLink.href = zipUrl;
+      zipLink.download = 'ePoster.zip';
+      document.body.appendChild(zipLink);
+      zipLink.click();
+      document.body.removeChild(zipLink);
+      URL.revokeObjectURL(zipUrl);
+  
+      // 下載 MD5 檔案
+      const md5Blob = new Blob([result.md5], { type: 'text/plain' });
+      const md5Url = URL.createObjectURL(md5Blob);
+      const md5Link = document.createElement('a');
+      md5Link.href = md5Url;
+      md5Link.download = 'ePoster.zip.md5';
+      document.body.appendChild(md5Link);
+      md5Link.click();
+      document.body.removeChild(md5Link);
+      URL.revokeObjectURL(md5Url);
+  
       setShowSuccess(true);
-
+  
     } catch (err) {
       console.error('Download failed:', err);
       setError(t('common.error.downloadFailed'));
     } finally {
       setIsProcessing(false);
       setProcessingStatus('');
-      setProgress(0);  // 重置進度
+      setProgress(0);
     }
-  }, [customer, mode, powerMode, timeZone, config, t]);
+  }, [config, customer, mode, powerMode, timeZone, t]);
 
   return (
     <>
