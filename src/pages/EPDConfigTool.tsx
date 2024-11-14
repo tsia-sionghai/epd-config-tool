@@ -170,6 +170,7 @@ const EPDConfigurationTool: React.FC = () => {
     try {
       // 先複製並重命名所有圖片，保留原始副檔名
       setStatus(t('common.status.copyingImages'));
+
       for (const [index, image] of images.entries()) {
         try {
           // 記錄原始檔案資訊
@@ -177,6 +178,14 @@ const EPDConfigurationTool: React.FC = () => {
 
           const extension = image.name.split('.').pop() || '';
           const newFileName = `${(index + 1).toString()}.${extension}`;
+
+          // 更新狀態訊息，加入當前進度
+          setStatus(t('common.status.copyingImages', { 
+            imageNumber: index + 1,
+            totalImages: images.length,
+            name: newFileName
+          }));
+
           await copyImages([{ ...image, name: newFileName, order: index }], imageDir);
           console.log(`Copied and renamed image to ${newFileName}`);
         } catch (err) {
