@@ -9,7 +9,8 @@ import {
   CircularProgress,
   Typography,
   Snackbar,
-  Alert
+  Alert,
+  Box
 } from '@mui/material';
 import { styled } from '@mui/material/styles';
 import HintMessage from './HintMessage';
@@ -18,7 +19,6 @@ import CustomButton from './common/CustomButton';
 import { ModeType, ImageConfig, ImageFile, PowerModeType, TimeZoneType } from '../types/common';
 import { createEPosterPackage } from '../utils/zipUtils';
 import { useTranslation } from 'react-i18next';
-import { TOptionsBase } from 'i18next';
 
 // Styled Backdrop - 與 EPDConfigTool 相同的樣式
 const StyledBackdrop = styled(Backdrop)(({ theme }) => ({
@@ -52,7 +52,8 @@ const ImageSection: React.FC<ImageSectionProps> = ({
   const { t } = useTranslation();
   const theme = useTheme();
   const [isProcessing, setIsProcessing] = useState(false);
-  const [processingStatus, setProcessingStatus] = useState<string>('');
+  const [processingStatus, setProcessingStatus] = useState<string>(t('common.status.preparing'));
+  const [progress, setProgress] = useState(0);  // 新增 progress 狀態
   const [error, setError] = useState<string | null>(null);
   const [showSuccess, setShowSuccess] = useState(false);
 
@@ -77,6 +78,8 @@ const ImageSection: React.FC<ImageSectionProps> = ({
 
       setIsProcessing(true);
       setError(null);
+      setProgress(0);  // 重置進度
+      setProcessingStatus(t('common.status.preparing'));  // 重設狀態
 
       const configData = {
         Customer: customer,
@@ -97,11 +100,16 @@ const ImageSection: React.FC<ImageSectionProps> = ({
       const zipBlob = await createEPosterPackage(
         configData, 
         config.images,
-        (status, params) => setProcessingStatus(
-          t(status, params ? { ...params, interpolation: { escapeValue: false } } : undefined)
-        )
+        (status, params) => {
+          setProcessingStatus(
+            t(status, params ? { ...params, interpolation: { escapeValue: false } } : undefined)
+          );
+          if (params?.percent !== undefined) {
+            setProgress(params.percent);  // 更新進度
+          }
+        }
       );
-      
+
       // 觸發下載
       const url = URL.createObjectURL(zipBlob);
       const a = document.createElement('a');
@@ -120,6 +128,7 @@ const ImageSection: React.FC<ImageSectionProps> = ({
     } finally {
       setIsProcessing(false);
       setProcessingStatus('');
+      setProgress(0);  // 重置進度
     }
   }, [customer, mode, powerMode, timeZone, config, t]);
 
@@ -185,9 +194,38 @@ const ImageSection: React.FC<ImageSectionProps> = ({
 
           {/* Processing Backdrop */}
           <StyledBackdrop open={isProcessing}>
-            <CircularProgress color="inherit" size={60} />
-            <Typography variant="h6" component="div">
-              {processingStatus || t('common.status.processing')}
+            <Box sx={{ position: 'relative', display: 'inline-flex' }}>
+              <CircularProgress
+                variant="determinate"
+                value={progress}
+                size={80}
+                thickness={4}
+                sx={{
+                  color: 'primary.light',  // 外圈顏色
+                }}
+              />
+              <Box
+                sx={{
+                  top: 0,
+                  left: 0,
+                  bottom: 0,
+                  right: 0,
+                  position: 'absolute',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
+                <Typography
+                  variant="caption"
+                  component="div"
+                  color="white"
+                  sx={{ fontSize: '1rem' }}
+                >{`${Math.round(progress)}%`}</Typography>
+              </Box>
+            </Box>
+            <Typography variant="h6" sx={{ mt: 2 }}>
+              {processingStatus}
             </Typography>
           </StyledBackdrop>
 

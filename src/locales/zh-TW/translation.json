@@ -64,31 +64,22 @@
       "spaceConfirmation": "請確保您的 SD 卡有足夠的可用空間，否則操作可能會失敗。"
     },
     "status": {
+      "preparing": "準備中...",
       "processing": "處理中...",
       "checkingSDCard": "檢查 SD 卡...",
       "creatingFiles": "建立檔案...",
       "creatingDirectory": "建立目錄...",
-      "copyingImages": "複製圖片...",
+      "copyingImages": "複製圖片 {{imageNumber}}/{{totalImages}}: {{name}}",
       "uploadingImage": "上傳圖片 {{current}}/{{total}}: {{name}}",
+      "downloadingBin": "下載播放檔案 {{imageNumber}}/{{totalImages}}, Bin {{binNumber}}/{{totalBins}}",
       "downloadingBinFiles": "下載轉換檔案 {{current}}/{{total}}",
-      "processingImages": "處理圖片...",
+      "processingImage": "處理圖片 {{imageNumber}}/{{totalImages}}",
       "creatingConfig": "產生設定檔...",
       "checkingSpace": "檢查儲存空間...",
       "cleaningUp": "清理檔案...",
-      "estimatingSpace": "計算所需空間..."
-    },
-    "nasStatus": {
-      "preparing": "準備中...",
-      "creatingConfig": "建立設定檔案中...",
-      "creatingFiles": "建立檔案中...",
-      "creatingDirectory": "建立目錄中...",
-      "copyingImages": "複製圖片中...",
-      "processingImages": "處理圖片中...",
-      "uploadingImage": "上傳圖片 {{current}}/{{total}}: {{name}}",
-      "downloadingBinFiles": "下載播放檔案 {{current}}/{{total}}...",
+      "estimatingSpace": "計算所需空間...",
       "creatingZip": "壓縮檔案中...",
-      "calculatingHash": "計算檔案雜湊值...",
-      "processing": "處理中..."
+      "calculatingHash": "計算雜湊值..."
     },
     "success": {
       "configGenerated": "已成功產生設定檔案",
