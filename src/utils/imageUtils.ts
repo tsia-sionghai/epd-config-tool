@@ -14,13 +14,13 @@ export const getThumbnailDimensions = (
 
   // 計算實際需要的旋轉角度
   const getActualRotation = (size: string, uiRotate: number) => {
-    if (size === '13.3') {
-      // 13.3" 的特殊處理：UI rotate 90° 對應實際 0°
-      return uiRotate === 90 ? 0 : 
-             uiRotate === 180 ? 90 :
-             uiRotate === 270 ? 180 :
-             uiRotate === 0 ? 270 : uiRotate;
-    }
+    // if (size === '13.3') {
+    //   // 13.3" 的特殊處理：UI rotate 90° 對應實際 0°
+    //   return uiRotate === 90 ? 0 : 
+    //          uiRotate === 180 ? 90 :
+    //          uiRotate === 270 ? 180 :
+    //          uiRotate === 0 ? 270 : uiRotate;
+    // }
     return uiRotate;
   };
 

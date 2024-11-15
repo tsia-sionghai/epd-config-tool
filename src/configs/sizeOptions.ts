@@ -7,5 +7,5 @@ export const sizeOptions = [
 ] as const;
 
 export const getResolution = (size: string) => {
-  return sizeOptions.find(option => option.value === size)?.resolution || '1200x1600';
+  return sizeOptions.find(option => option.value === size)?.resolution || '2560x1440';
 };
