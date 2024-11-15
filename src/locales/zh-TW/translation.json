@@ -129,5 +129,13 @@
       "title": "Normal Mode",
       "description": "畫面刷新後，機台將會持續醒著。"
     }
+  },
+  "dialog": {
+    "saveLocation": {
+      "title": "選擇儲存位置",
+      "description": "選擇「確認下載」後，您可以選擇儲存位置並確認是否要覆蓋現有檔案。",
+      "cancelButton": "取消下載",
+      "confirmButton": "確認下載"
+    }
   }
 }

@@ -7,6 +7,7 @@ import {
   DialogActions,
   Button,
 } from '@mui/material';
+import { useTranslation } from 'react-i18next';
 
 interface FileHandlerProps {
   isOpen: boolean;
@@ -15,6 +16,8 @@ interface FileHandlerProps {
 }
 
 const FileHandler: React.FC<FileHandlerProps> = ({ isOpen, onOverwrite, onCancel }) => {
+  const { t } = useTranslation();
+
   return (
     <Dialog
       open={isOpen}
@@ -23,16 +26,16 @@ const FileHandler: React.FC<FileHandlerProps> = ({ isOpen, onOverwrite, onCancel
       aria-describedby="alert-dialog-description"
     >
       <DialogTitle id="alert-dialog-title">
-        選擇儲存位置
+        {t('dialog.saveLocation.title')}
       </DialogTitle>
       <DialogContent>
         <DialogContentText id="alert-dialog-description">
-          選擇「確認下載」後，您可以選擇儲存位置並確認是否要覆蓋現有檔案。
+          {t('dialog.saveLocation.description')}
         </DialogContentText>
       </DialogContent>
       <DialogActions>
         <Button onClick={onCancel} color="primary">
-          取消下載
+          {t('dialog.saveLocation.cancelButton')}
         </Button>
         <Button
           onClick={onOverwrite}
@@ -40,7 +43,7 @@ const FileHandler: React.FC<FileHandlerProps> = ({ isOpen, onOverwrite, onCancel
           variant="contained"
           autoFocus
         >
-          確認下載
+          {t('dialog.saveLocation.confirmButton')}
         </Button>
       </DialogActions>
     </Dialog>
