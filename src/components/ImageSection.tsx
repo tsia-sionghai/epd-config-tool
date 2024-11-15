@@ -1,5 +1,5 @@
 // src/components/ImageSection.tsx
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import { 
   Grid, 
   useTheme, 
@@ -17,10 +17,11 @@ import HintMessage from './HintMessage';
 import ImageUploader from './ImageUploader';
 import CustomButton from './common/CustomButton';
 import { ModeType, ImageConfig, ImageFile, PowerModeType, TimeZoneType } from '../types/common';
-import { createEPosterPackage } from '../utils/zipUtils';
+import FileHandler from './dialogs/FileHandler';
 import { useTranslation } from 'react-i18next';
+import { createEPosterPackage } from '../utils/zipUtils';
 
-// Styled Backdrop - 與 EPDConfigTool 相同的樣式
+// Styled Backdrop - 保持原有樣式
 const StyledBackdrop = styled(Backdrop)(({ theme }) => ({
   zIndex: theme.zIndex.drawer + 1,
   color: '#fff',
@@ -53,9 +54,12 @@ const ImageSection: React.FC<ImageSectionProps> = ({
   const theme = useTheme();
   const [isProcessing, setIsProcessing] = useState(false);
   const [processingStatus, setProcessingStatus] = useState<string>(t('common.status.preparing'));
-  const [progress, setProgress] = useState(0);  // 新增 progress 狀態
+  const [progress, setProgress] = useState(0);
+  const [showFileHandler, setShowFileHandler] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showSuccess, setShowSuccess] = useState(false);
+  const [preparedData, setPreparedData] = useState<{ zipBlob: Blob; md5sum: string } | null>(null);
+  // const [downloadData, setDownloadData] = useState<{ zipBlob: Blob; md5sum: string } | null>(null);
 
   const handleImagesChange = useCallback((newImages: ImageFile[] | ((prev: ImageFile[]) => ImageFile[])) => {
     if (typeof newImages === 'function') {
@@ -68,75 +72,110 @@ const ImageSection: React.FC<ImageSectionProps> = ({
     }
   }, [onConfigChange]);
 
-  // src/components/ImageSection.tsx
-  const handleDownloadBinary = useCallback(async () => {
+  const configData = useMemo(() => ({
+    Customer: customer,
+    Mode: mode,
+    PowerMode: powerMode,
+    TimeZone: timeZone,
+    SoftAP: "0",
+    Path: "/sdcard/image/slideshow",
+    Size: config.size,
+    Rotate: config.rotate.toString(),
+    Interval: config.interval.toString(),
+    WifiSetting: "",
+    ServerURL: "",
+    PackageName: "",
+    ActivityName: ""
+  }), [customer, mode, powerMode, timeZone, config.size, config.rotate, config.interval]);
+
+  const handleDownload = useCallback(async (overwrite = false) => {
     try {
       if (!config.images.length) {
         setError(t('common.error.noImagesSelected'));
         return;
       }
-  
-      setIsProcessing(true);
-      setError(null);
-      setProgress(0);
-      setProcessingStatus(t('common.status.preparing'));
-  
-      const configData = {
-        Customer: customer,
-        Mode: mode,
-        PowerMode: powerMode,
-        TimeZone: timeZone,
-        SoftAP: "0",
-        Path: "/sdcard/image/slideshow",
-        Size: config.size,
-        Rotate: config.rotate.toString(),
-        Interval: config.interval.toString(),
-        WifiSetting: "",
-        ServerURL: "",
-        PackageName: "",
-        ActivityName: ""
-      };
-  
-      const result = await createEPosterPackage(
-        configData, 
-        config.images,
-        (status, params) => setProcessingStatus(
-          t(status, params ? { ...params, interpolation: { escapeValue: false } } : undefined)
-        )
-      );
-  
-      // 下載 ZIP 檔案
-      const zipUrl = URL.createObjectURL(result.zipBlob);
-      const zipLink = document.createElement('a');
-      zipLink.href = zipUrl;
-      zipLink.download = 'ePoster.zip';
-      document.body.appendChild(zipLink);
-      zipLink.click();
-      document.body.removeChild(zipLink);
-      URL.revokeObjectURL(zipUrl);
-  
-      // 下載 MD5 檔案
-      const md5Blob = new Blob([result.md5], { type: 'text/plain' });
-      const md5Url = URL.createObjectURL(md5Blob);
-      const md5Link = document.createElement('a');
-      md5Link.href = md5Url;
-      md5Link.download = 'ePoster.zip.md5';
-      document.body.appendChild(md5Link);
-      md5Link.click();
-      document.body.removeChild(md5Link);
-      URL.revokeObjectURL(md5Url);
-  
-      setShowSuccess(true);
-  
+
+      // 如果已經有準備好的資料且要覆蓋
+      if (overwrite && preparedData) {
+        console.log('使用已準備的資料進行儲存');
+        try {
+          const zipHandle = await window.showSaveFilePicker({
+            suggestedName: 'ePoster.zip',
+            types: [{
+              description: 'ZIP files',
+              accept: { 'application/zip': ['.zip'] }
+            }]
+          });
+
+          const writable = await zipHandle.createWritable();
+          await writable.write(preparedData.zipBlob);
+          await writable.close();
+
+          if (preparedData.md5sum) {
+            const md5Handle = await window.showSaveFilePicker({
+              suggestedName: 'ePoster.zip.md5',
+              types: [{
+                description: 'MD5 files',
+                accept: { 'text/plain': ['.md5'] }
+              }]
+            });
+
+            const md5Writable = await md5Handle.createWritable();
+            await md5Writable.write(preparedData.md5sum);
+            await md5Writable.close();
+          }
+
+          setShowSuccess(true);
+          setPreparedData(null);
+          return;
+        } catch (e) {
+          if (e.name === 'AbortError') {
+            return;
+          }
+          throw e;
+        }
+      }
+
+      // 如果是第一次點擊下載
+      if (!overwrite) {
+        setIsProcessing(true);
+        setError(null);
+        setProgress(0);
+        setProcessingStatus(t('common.status.preparing'));
+
+        const result = await createEPosterPackage(
+          configData, 
+          config.images,
+          (status, params) => setProcessingStatus(
+            t(status, params ? { ...params, interpolation: { escapeValue: false } } : undefined)
+          )
+        );
+
+        setPreparedData(result);
+        setShowFileHandler(true);
+        setIsProcessing(false);
+        return;
+      }
+
     } catch (err) {
-      console.error('Download failed:', err);
+      console.error('下載失敗:', err);
       setError(t('common.error.downloadFailed'));
     } finally {
       setIsProcessing(false);
       setProcessingStatus('');
       setProgress(0);
     }
-  }, [config, customer, mode, powerMode, timeZone, t]);
+  }, [config.images, configData, t, preparedData]);
+
+  const handleOverwrite = useCallback(() => {
+    setShowFileHandler(false);
+    handleDownload(true);
+  }, [handleDownload]);
+
+  const handleCancel = useCallback(() => {
+    setShowFileHandler(false);
+    setPreparedData(null);
+  }, []);
 
   return (
     <>
@@ -163,7 +202,7 @@ const ImageSection: React.FC<ImageSectionProps> = ({
           <Grid item container spacing={2} sx={{ mt: 0 }}>
             <Grid item xs={12}>
               <CustomButton 
-                onClick={handleDownloadBinary}
+                onClick={() => handleDownload(false)}
                 fullWidth
                 disabled={isProcessing}
               >
@@ -193,7 +232,7 @@ const ImageSection: React.FC<ImageSectionProps> = ({
                 size={80}
                 thickness={4}
                 sx={{
-                  color: 'primary.light',  // 外圈顏色
+                  color: 'primary.light',
                 }}
               />
               <Box
@@ -220,6 +259,12 @@ const ImageSection: React.FC<ImageSectionProps> = ({
               {processingStatus}
             </Typography>
           </StyledBackdrop>
+
+          <FileHandler 
+            isOpen={showFileHandler}
+            onOverwrite={handleOverwrite}
+            onCancel={handleCancel}
+          />
 
           {/* Error Snackbar */}
           <Snackbar

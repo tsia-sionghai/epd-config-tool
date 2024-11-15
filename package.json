@@ -10,15 +10,14 @@
     "serve": "vite preview",
     "lint": "eslint src --ext ts,tsx",
     "type-check": "tsc --noEmit",
-    "clean": "rimraf dist",
+    "clean": "vite optimize --force",
     "find-unused": "ts-prune --ignore 'src/utils/fileSystem.ts:downloadAndSaveBinFiles'"
   },
   "dependencies": {
     "@emotion/react": "^11.13.3",
     "@emotion/styled": "^11.13.0",
     "@hello-pangea/dnd": "^17.0.0",
-    "@mui/icons-material": "^6.1.4",
-    "@mui/material": "^6.1.4",
+    "@mui/material": "^6.1.7",
     "axios": "^1.7.7",
     "i18next": "^23.16.2",
     "jszip": "^3.10.1",
@@ -26,7 +25,8 @@
     "react-dom": "^18.3.1",
     "react-dropzone": "^14.2.10",
     "react-i18next": "^15.1.0",
-    "react-router-dom": "^6.27.0"
+    "react-router-dom": "^6.27.0",
+    "ts-md5": "^1.3.1"
   },
   "devDependencies": {
     "@eslint/js": "^9.11.1",
