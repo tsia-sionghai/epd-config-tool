@@ -106,11 +106,11 @@ const ImageSection: React.FC<ImageSectionProps> = ({
               accept: { 'application/zip': ['.zip'] }
             }]
           });
-
+    
           const writable = await zipHandle.createWritable();
           await writable.write(preparedData.zipBlob);
           await writable.close();
-
+    
           if (preparedData.md5sum) {
             const md5Handle = await window.showSaveFilePicker({
               suggestedName: 'ePoster.zip.md5',
@@ -119,20 +119,21 @@ const ImageSection: React.FC<ImageSectionProps> = ({
                 accept: { 'text/plain': ['.md5'] }
               }]
             });
-
+    
             const md5Writable = await md5Handle.createWritable();
             await md5Writable.write(preparedData.md5sum);
             await md5Writable.close();
           }
-
+    
           setShowSuccess(true);
           setPreparedData(null);
           return;
-        } catch (e) {
-          if (e.name === 'AbortError') {
+        } catch (error) {
+          // 正確的錯誤類型處理
+          if (error instanceof Error && error.name === 'AbortError') {
             return;
           }
-          throw e;
+          throw error;
         }
       }
 
