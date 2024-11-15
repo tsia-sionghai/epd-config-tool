@@ -15,13 +15,6 @@ interface FileHandlerProps {
 }
 
 const FileHandler: React.FC<FileHandlerProps> = ({ isOpen, onOverwrite, onCancel }) => {
-  console.log('FileHandler render, isOpen:', isOpen);  // 追蹤渲染
-
-  const handleOverwriteClick = () => {
-    console.log('覆蓋按鈕被點擊');  // 追蹤按鈕點擊
-    onOverwrite();
-  };
-
   return (
     <Dialog
       open={isOpen}
@@ -30,11 +23,10 @@ const FileHandler: React.FC<FileHandlerProps> = ({ isOpen, onOverwrite, onCancel
       aria-describedby="alert-dialog-description"
     >
       <DialogTitle id="alert-dialog-title">
-        檔案已存在
+        選擇儲存位置
       </DialogTitle>
       <DialogContent>
         <DialogContentText id="alert-dialog-description">
-          目標資料夾中可能已存在 "ePoster.zip" 檔案。
           選擇「確認下載」後，您可以選擇儲存位置並確認是否要覆蓋現有檔案。
         </DialogContentText>
       </DialogContent>
@@ -43,7 +35,7 @@ const FileHandler: React.FC<FileHandlerProps> = ({ isOpen, onOverwrite, onCancel
           取消下載
         </Button>
         <Button
-          onClick={handleOverwriteClick}  // 使用新的處理函數
+          onClick={onOverwrite}
           color="primary"
           variant="contained"
           autoFocus
