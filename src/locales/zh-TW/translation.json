@@ -36,7 +36,8 @@
       "downloadEdge": "下載 Edge",
       "selectPath": "選擇路徑",
       "generateConfig": "產生設定檔案",
-      "downloadBinary": "下載播放檔案"
+      "downloadBinary": "下載播放檔案",
+      "cancel": "取消"
     },
     "hint": {
       "intervalMin": "秒數需設定180秒以上",
@@ -93,6 +94,8 @@
       "noSDCardSelected": "請先選擇 SD 卡",
       "sdCardNotEmpty": "SD 卡不是空的，請手動清空後再試一次",
       "noImagesSelected": "請至少選擇一張圖片",
+      "invalidResolution": "以下圖片解析度不符合要求 (需求: {{requirement}})：{{files}}",
+      "resolutionChangeInvalid": "無法將{{setting}}變更為 {{value}}，以下圖片解析度不符合要求 (需求: {{requirement}})：{{files}}",
       "requiredFields": "請填寫以下必填欄位：{{fields}}",
       "uploadFailed": "圖片上傳失敗",
       "downloadFailed": "檔案下載失敗，請稍後再試",

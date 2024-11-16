@@ -1,19 +1,18 @@
-// src/components/ImageSettings.tsx
-import React from 'react';
-import { Grid, Paper, Typography } from '@mui/material';
+import React, { useCallback, useState } from 'react';
+import { Grid, Paper, Typography, Snackbar, Alert } from '@mui/material';
 import { useTranslation } from 'react-i18next';
-import { ModeType, ImageConfig, PowerModeType, TimeZoneType } from '../types/common';
+import { ModeType, ImageConfig, PowerModeType, TimeZoneType, SizeType } from '../types/common';
 import SizeSelector from './SizeSelector';
 import RotateSelector from './RotateSelector';
 import IntervalSelector from './IntervalSelector';
 import ImageSection from './ImageSection';
 import SelectorField from './common/SelectorField';
+import { checkImageResolution, getResolutionRequirement } from '../utils/imageUtils';
 
 interface ImageSettingsProps {
   mode: ModeType;
   config: ImageConfig;
   onConfigChange: (updates: Partial<ImageConfig> | ((prev: ImageConfig) => ImageConfig)) => void;
-  // 新增需要的 props
   customer: string;
   powerMode: PowerModeType;
   timeZone: TimeZoneType;
@@ -33,6 +32,48 @@ const ImageSettings: React.FC<ImageSettingsProps> = ({
   timeZone
 }) => {
   const { t } = useTranslation();
+  const [error, setError] = useState<string | null>(null);
+
+  const handleSettingChange = useCallback(async (
+    type: 'size' | 'rotate',
+    newValue: string | number
+  ) => {
+    // 沒有圖片時直接更新設定
+    if (config.images.length === 0) {
+      onConfigChange({ [type]: newValue });
+      return;
+    }
+
+    // 檢查每張圖片的解析度
+    const invalidImages: string[] = [];
+    const newConfig = {
+      ...config,
+      [type]: newValue
+    };
+
+    for (const image of config.images) {
+      const isValid = await checkImageResolution(image, newConfig);
+      if (!isValid) {
+        invalidImages.push(image.name);
+      }
+    }
+
+    if (invalidImages.length > 0) {
+      const requirement = getResolutionRequirement(
+        type === 'size' ? newValue as SizeType : config.size,
+        type === 'rotate' ? newValue as number : config.rotate
+      );
+      
+      setError(t('common.error.resolutionChangeInvalid', {
+        files: invalidImages.join(', '),
+        requirement,
+        setting: t(`common.label.${type}`),
+        value: type === 'size' ? newValue : `${newValue}°`
+      }));
+    } else {
+      onConfigChange({ [type]: newValue });
+    }
+  }, [config, onConfigChange, t]);
 
   return (
     <>
@@ -49,7 +90,7 @@ const ImageSettings: React.FC<ImageSettingsProps> = ({
               <SelectorField label={t('common.label.size')}>
                 <SizeSelector
                   value={config.size}
-                  onChange={(size) => onConfigChange({ size })}
+                  onChange={(size) => handleSettingChange('size', size)}
                 />
               </SelectorField>
             </Grid>
@@ -58,7 +99,7 @@ const ImageSettings: React.FC<ImageSettingsProps> = ({
               <SelectorField label={t('common.label.rotate')}>
                 <RotateSelector
                   value={config.rotate}
-                  onChange={(rotate) => onConfigChange({ rotate })}
+                  onChange={(rotate) => handleSettingChange('rotate', rotate)}
                 />
               </SelectorField>
             </Grid>
@@ -80,7 +121,6 @@ const ImageSettings: React.FC<ImageSettingsProps> = ({
                   mode={mode}
                   config={config}
                   onConfigChange={onConfigChange}
-                  // 傳遞新增的 props
                   customer={customer}
                   powerMode={powerMode}
                   timeZone={timeZone}
@@ -90,6 +130,21 @@ const ImageSettings: React.FC<ImageSettingsProps> = ({
           </Grid>
         </Paper>
       )}
+
+      <Snackbar
+        open={!!error}
+        autoHideDuration={6000}
+        onClose={() => setError(null)}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      >
+        <Alert 
+          onClose={() => setError(null)}
+          severity="error"
+          variant="filled"
+        >
+          {error}
+        </Alert>
+      </Snackbar>
     </>
   );
 };

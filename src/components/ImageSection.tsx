@@ -59,18 +59,28 @@ const ImageSection: React.FC<ImageSectionProps> = ({
   const [error, setError] = useState<string | null>(null);
   const [showSuccess, setShowSuccess] = useState(false);
   const [preparedData, setPreparedData] = useState<{ zipBlob: Blob; md5sum: string } | null>(null);
-  // const [downloadData, setDownloadData] = useState<{ zipBlob: Blob; md5sum: string } | null>(null);
 
   const handleImagesChange = useCallback((newImages: ImageFile[] | ((prev: ImageFile[]) => ImageFile[])) => {
     if (typeof newImages === 'function') {
-      onConfigChange(prevConfig => ({
-        ...prevConfig,
-        images: newImages(prevConfig.images)
-      }));
+      onConfigChange(prevConfig => {
+        const updatedImages = newImages(prevConfig.images);
+        // 如果圖片數量改變，清除已準備的下載資料
+        if (updatedImages.length !== prevConfig.images.length) {
+          setPreparedData(null);
+        }
+        return {
+          ...prevConfig,
+          images: updatedImages
+        };
+      });
     } else {
+      // 如果圖片數量改變，清除已準備的下載資料
+      if (newImages.length !== config.images.length) {
+        setPreparedData(null);
+      }
       onConfigChange({ images: newImages });
     }
-  }, [onConfigChange]);
+  }, [onConfigChange, config.images.length]);
 
   const configData = useMemo(() => ({
     Customer: customer,

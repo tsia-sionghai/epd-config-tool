@@ -1,5 +1,5 @@
 // src/components/ImageUploader.tsx
-import React, { useCallback, useMemo, useEffect } from 'react';
+import React, { useCallback, useMemo, useEffect, useState } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { Box, Button, Typography, IconButton, styled } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
@@ -29,6 +29,8 @@ const DropzoneArea = styled(Box)(({ theme }) => ({
     borderColor: theme.palette.primary.main,
   },
 }));
+import { checkImageResolution, getResolutionRequirement } from '../utils/imageUtils';
+import { Alert, Snackbar } from '@mui/material';
 
 const PreviewContainer = styled('div')(({ theme }) => ({
   display: 'grid',
@@ -114,6 +116,7 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
   rotate
 }) => {
   const { t } = useTranslation();
+  const [resolutionError, setResolutionError] = useState<string | null>(null);
   
   const safeImages = useMemo(() => {
     return Array.isArray(images) ? images.map((image, index) => ({
@@ -123,21 +126,48 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
   }, [images]);
 
   const onDrop = useCallback(async (acceptedFiles: File[]) => {
-    const newImages = acceptedFiles.map(file => ({
-      file,
-      preview: URL.createObjectURL(file),
-      name: file.name,
-      size: file.size,
-      type: file.type,
-      lastModified: file.lastModified,
-      id: `image-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
-    }));
+    const validImages: ImageFile[] = [];
+    const invalidImages: string[] = [];
+    
+    for (const file of acceptedFiles) {
+      const image = {
+        file,
+        preview: URL.createObjectURL(file),
+        name: file.name,
+        size: file.size,
+        type: file.type,
+        lastModified: file.lastModified,
+        id: `image-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
+      };
 
-    setImages(prev => {
-      const prevImages = Array.isArray(prev) ? prev : [];
-      return [...prevImages, ...newImages];
-    });
-  }, [setImages]);
+      // 檢查圖片解析度
+      const isValid = await checkImageResolution(image, { size, rotate });
+      
+      if (isValid) {
+        validImages.push(image);
+      } else {
+        invalidImages.push(file.name);
+        URL.revokeObjectURL(image.preview);
+      }
+    }
+
+    if (invalidImages.length > 0) {
+      const requirement = getResolutionRequirement(size, rotate);
+      setResolutionError(
+        t('common.error.invalidResolution', {
+          files: invalidImages.join(', '),
+          requirement: requirement
+        })
+      );
+    }
+
+    if (validImages.length > 0) {
+      setImages(prev => {
+        const prevImages = Array.isArray(prev) ? prev : [];
+        return [...prevImages, ...validImages];
+      });
+    }
+  }, [setImages, size, rotate, t]);
 
   const { getRootProps, getInputProps, open } = useDropzone({
     onDrop,
@@ -287,6 +317,22 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
           </Droppable>
         </DragDropContext>
       )}
+
+      {/* 新增解析度錯誤提示 */}
+      <Snackbar
+        open={!!resolutionError}
+        autoHideDuration={6000}
+        onClose={() => setResolutionError(null)}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      >
+        <Alert 
+          onClose={() => setResolutionError(null)}
+          severity="error"
+          variant="filled"
+        >
+          {resolutionError}
+        </Alert>
+      </Snackbar>
     </Box>
   );
 };
