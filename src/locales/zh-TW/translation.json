@@ -16,6 +16,7 @@
       "mode": "Mode",
       "powerMode": "Power Mode",
       "timeZone": "Time Zone",
+      "serverSyncInterval": "Check Update Interval",
       "size": "Size",
       "rotate": "Rotate",
       "interval": "Interval (seconds)",
@@ -43,11 +44,13 @@
     },
     "hint": {
       "intervalMin": "秒數需設定180秒以上",
+      "serverSyncIntervalMin": "請輸入 5-1440 之間的整數",
       "sdCardPathCheck": "請確認所選擇的儲存路徑位於SD卡中",
       "downloadBinaryToNAS": "請將下載的播放檔案上傳至您的NAS上。"
     },
     "placeholder": {
       "enterCustomer": "請輸入名稱",
+      "serverSyncInterval": "請輸入 5-1440 之間的整數",
       "ssid": "SSID",
       "password": "Password",
       "ip": "IP Address",
@@ -63,6 +66,9 @@
     },
     "tooltip": {
       "nasNotAvailable": "NAS 模式功能尚未開放，敬請期待"
+    },
+    "unit": {
+      "minutes": "minutes"
     },
     "warning": {
       "spaceTitle": "空間需求確認",
@@ -138,6 +144,12 @@
           "cms": "無效的 CMS Server URL 格式",
           "nas": "無效的 NAS URL 格式，請使用支援的通訊協定（smb://, nfs://, ftp://, http(s)://）"
         }
+      },
+      "serverSyncInterval": {
+        "required": "請輸入更新檢查間隔",
+        "invalid": "請輸入有效的數字",
+        "tooSmall": "更新間隔不能小於 {{min}} 分鐘",
+        "tooLarge": "更新間隔不能超過 {{max}} 分鐘"
       }
     }
   },

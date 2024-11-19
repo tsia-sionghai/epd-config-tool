@@ -31,9 +31,10 @@ const processNetworkConfig = (
     });
   }
 
-  // 設定 ServerURL（適用於 CMS 和 NAS 模式）
+  // 設定 ServerURL 和 ServerSyncInterval（適用於 CMS 和 NAS 模式）
   if (['cms', 'nas'].includes(mode)) {
     config.ServerURL = networkConfig.serverURL || '';
+    config.ServerSyncInterval = networkConfig.ServerSyncInterval || 10; // 預設值 10
   }
 
   return config;
@@ -46,7 +47,7 @@ export const generateConfig = (
   powerMode: PowerModeType,
   timeZone: TimeZoneType,
   imageConfig: ImageConfig,
-  networkConfig?: NetworkConfig
+  networkConfig?: NetworkConfig & { ServerSyncInterval?: number }  // 擴展介面以包含 ServerSyncInterval
 ): SignageConfig => {
   // 基本配置
   const baseConfig: SignageConfig = {
@@ -62,7 +63,8 @@ export const generateConfig = (
     WifiSetting: "",
     ServerURL: "",
     PackageName: "",
-    ActivityName: ""
+    ActivityName: "",
+    ServerSyncInterval: 10  // 預設值
   };
 
   // 如果有網路設定且是 CMS 或 NAS 模式，則處理網路設定
@@ -81,5 +83,6 @@ export const generateConfig = (
 export const convertToConfigFile = (config: SignageConfig): SignageConfigFile => ({
   ...config,
   Rotate: config.Rotate.toString(),
-  Interval: config.Interval.toString()
+  Interval: config.Interval.toString(),
+  ServerSyncInterval: config.ServerSyncInterval.toString()  // 新增轉換
 });

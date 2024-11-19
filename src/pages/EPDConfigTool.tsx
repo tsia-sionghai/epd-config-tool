@@ -22,7 +22,7 @@ import {
   createDirectory, 
   copyImages,
   createEmptyFile,
-  checkSDCardEmpty,
+  // checkSDCardEmpty,
   cleanupSDCard
 } from '../utils/fileSystem';
 import { 
@@ -343,6 +343,16 @@ const EPDConfigurationTool: React.FC = () => {
     }
   }, [customerError]);
 
+  const [serverSyncInterval, setServerSyncInterval] = useState('10'); // 預設值為 10
+  const [basicErrors, setBasicErrors] = useState<Record<string, string>>({});
+
+  const handleBasicError = useCallback((field: string, error: string) => {
+    setBasicErrors(prev => ({
+      ...prev,
+      [field]: error
+    }));
+  }, []);
+
   const handleNetworkError = useCallback((field: string, error: string) => {
     setNetworkErrors(prev => ({
       ...prev,
@@ -407,17 +417,30 @@ const EPDConfigurationTool: React.FC = () => {
   // handleGenerateConfig 函數
   const handleGenerateConfig = async () => {
     try {
+      // 1. 先進行所有欄位檢查
       // 清除之前的錯誤訊息
       setCustomerError('');
 
-      // 1. 檢查共同必填項目: Customer
+      // 檢查共同必填項目: Customer
       if (!customer.trim()) {
         setCustomerError(t('common.error.customerRequired'));
         return;
       }
 
-      // 2. 檢查網路設定 (CMS 和 NAS 模式)
+      // 檢查網路設定 (CMS 和 NAS 模式)
       if (mode === 'cms' || mode === 'nas') {
+        // 檢查 ServerSyncInterval
+        const intervalValue = parseInt(serverSyncInterval, 10);
+
+        if (isNaN(intervalValue) || intervalValue < 5 || intervalValue > 1440) {
+          setError({
+            show: true,
+            message: t('common.error.serverSyncInterval.invalid')
+          });
+          return;
+        }
+        
+        // 檢查網路設定
         const networkValidation = validateNetworkSettings(
           t,
           mode,
@@ -428,11 +451,10 @@ const EPDConfigurationTool: React.FC = () => {
         if (!networkValidation.isValid) {
           const firstErrorField = Object.keys(networkValidation.errors)[0] as keyof typeof fieldRefs;
           
-          // 聚焦到第一個錯誤欄位
           if (firstErrorField && fieldRefs[firstErrorField]?.current) {
             fieldRefs[firstErrorField].current.focus();
           }
-
+  
           setError({
             show: true,
             message: Object.values(networkValidation.errors)[0]
@@ -441,23 +463,23 @@ const EPDConfigurationTool: React.FC = () => {
         }
       }
 
-      // 3. 檢查 SD Card 是否已選擇
+      // 2. 檢查 SD Card 相關
       if (!sdCardHandle) {
         setError({
           show: true,
           message: t('common.error.noSDCardSelected')
         });
         return;
-      }
+      }  
 
       // 4. 檢查 SD Card 是否為空
-      setProcessingStatus(t('common.status.checkingSDCard'));
-      const isEmpty = await checkSDCardEmpty(sdCardHandle, true);
-      if (!isEmpty) {
-        throw new Error(t('common.error.sdCardNotEmpty'));
-      }
+      // setProcessingStatus(t('common.status.checkingSDCard'));
+      // const isEmpty = await checkSDCardEmpty(sdCardHandle, true);
+      // if (!isEmpty) {
+      //   throw new Error(t('common.error.sdCardNotEmpty'));
+      // }
 
-      // 5. 檢查特定模式的必要條件
+      // 3. 檢查特定模式的必要條件
       if (mode === 'auto' || mode === 'nas') {
         if (!imageConfig.images.length) {
           setError({
@@ -509,15 +531,15 @@ const EPDConfigurationTool: React.FC = () => {
         }
       }
 
-      // 開始處理配置
-      setIsProcessing(true);
+      // 4. 所有檢查都通過後，才開始真正的處理流程
+      setIsProcessing(true);  // 在這裡設定處理中狀態
 
       try {
-        // 6. 建立必要檔案和目錄
+        // 執行實際的檔案處理、設定生成等工作
         setProcessingStatus(t('common.status.creatingFiles'));
         await createEmptyFile(sdCardHandle, 'show_info');
 
-        // 7. 處理圖片（auto 或 nas 模式）
+        // 處理圖片（auto 或 nas 模式）
         if (mode === 'auto' || mode === 'nas') {
           setProcessingStatus(t('common.status.creatingDirectory'));
           const imageDir = await createDirectory(sdCardHandle, 'image/slideshow');
@@ -540,9 +562,10 @@ const EPDConfigurationTool: React.FC = () => {
           }
         }
 
-        // 8. 建立設定檔
+        // 5. 建立設定檔
         setProcessingStatus(t('common.status.creatingConfig'));
         
+        // 在 generateConfig 呼叫時添加
         const internalConfig = generateConfig(
           customer,
           mode,
@@ -551,7 +574,8 @@ const EPDConfigurationTool: React.FC = () => {
           imageConfig,
           mode === 'cms' || mode === 'nas' ? {
             ...networkConfig,
-            serverURL
+            serverURL,
+            ServerSyncInterval: parseInt(serverSyncInterval, 10)
           } : undefined
         );
 
@@ -560,12 +584,14 @@ const EPDConfigurationTool: React.FC = () => {
         setShowSuccess(true);
 
       } catch (error) {
+        // 處理執行期間的錯誤
         console.error('Error during process:', error);
         setProcessingStatus(t('common.status.cleaningUp'));
         await cleanupSDCard(sdCardHandle, 'process_error');
         throw error;
       }
     } catch (error) {
+      // 處理整體錯誤
       console.error('Error in handleGenerateConfig:', error);
       setError({
         show: true,
@@ -575,9 +601,10 @@ const EPDConfigurationTool: React.FC = () => {
             error.message) : 
           t('common.error.generateConfigFailed')
       });
-    } finally {
       setIsProcessing(false);
       setProcessingStatus('');
+    } finally {
+      setIsProcessing(false);
     }
   };
 
@@ -595,6 +622,10 @@ const EPDConfigurationTool: React.FC = () => {
         setPowerMode={setPowerMode}
         timeZone={timeZone}
         setTimeZone={setTimeZone}
+        serverSyncInterval={serverSyncInterval}
+        setServerSyncInterval={setServerSyncInterval}
+        serverSyncIntervalError={basicErrors.serverSyncInterval}
+        onErrorChange={handleBasicError}
       />
 
       <ImageSettings

@@ -11,6 +11,7 @@ export interface SignageConfig {
   Mode: ModeType;
   PowerMode: PowerModeType;
   TimeZone: TimeZoneType;
+  ServerSyncInterval: number;
   SoftAP: string;
   Path: string;
   Size: string;
@@ -26,32 +27,11 @@ export interface SignageConfig {
   ActivityName: string;
 }
 
-export interface SignageConfigFile extends Omit<SignageConfig, 'Rotate' | 'Interval'> {
+export interface SignageConfigFile extends Omit<SignageConfig, 'Rotate' | 'Interval' | 'ServerSyncInterval'> {
   Rotate: string;
   Interval: string;
+  ServerSyncInterval: string;  // 轉為字串格式
 }
-
-// 檔案儲存格式
-// export interface SignageConfigFile {
-//   Customer: string;
-//   Mode: ModeType;
-//   PowerMode: PowerModeType;
-//   TimeZone: TimeZoneType;
-//   SoftAP: string;
-//   Path: string;
-//   Size: string;
-//   Rotate: string;      // 注意這裡是 string
-//   Interval: string;    // 注意這裡是 string
-//   WifiSetting: string;
-//   IP_addr?: string;
-//   Netmask?: string;
-//   Gateway?: string;
-//   DNS?: string;
-//   ServerURL: string;
-//   PackageName: string;
-//   ActivityName: string;
-//   DownloadURL: string;
-// }
 
 export interface ImageFile {
   file: File;
