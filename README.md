@@ -1,2 +1,2 @@
-# epd-config-tool
- EPD (Electronic Paper Display) Configuration Tool
+# SD Tool (aka EPD Configuration Tool) Project
+>>>>>>> temp-master
