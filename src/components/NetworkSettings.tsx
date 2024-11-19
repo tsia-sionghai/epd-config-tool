@@ -1,41 +1,13 @@
 // src/components/NetworkSettings.tsx
-import React, { createRef } from 'react';
+import React, { useEffect } from 'react';
 import { Grid, Paper, Typography } from '@mui/material';
-import { ModeType, NetworkConfig } from '../types/common';
-import { shouldShowNetworkSettings } from '../utils/modeHelpers';
+import { NetworkSettingsProps, NetworkConfig } from '../types/common';
 import WifiSelector from './WifiSelector';
 import StaticIPFields from './StaticIPFields';
 import FormField from './common/FormField';
 import SelectorField from './common/SelectorField';
+import { validateField, ValidatableField } from '../utils/networkValidators';
 import { useTranslation } from 'react-i18next';
-
-interface NetworkSettingsProps {
-  mode: ModeType;
-  config: NetworkConfig;
-  onConfigChange: (updates: Partial<NetworkConfig>) => void;
-  serverURL: string;
-  setServerURL: (url: string) => void;
-  nasURL?: string;  // 移除可選標記,
-  setNasURL?: (url: string) => void;  // 移除可選標記,
-  errors: {  // 移除可選標記
-    ssid?: string;
-    password?: string;
-    ip?: string;
-    netmask?: string;
-    gateway?: string;
-    dns?: string;
-    serverURL?: string;
-  };
-  fieldRefs: {  // 移除可選標記
-    ssid: React.RefObject<HTMLInputElement>;
-    password: React.RefObject<HTMLInputElement>;
-    ip: React.RefObject<HTMLInputElement>;
-    netmask: React.RefObject<HTMLInputElement>;
-    gateway: React.RefObject<HTMLInputElement>;
-    dns: React.RefObject<HTMLInputElement>;
-    serverURL: React.RefObject<HTMLInputElement>;
-  };
-}
 
 const NetworkSettings: React.FC<NetworkSettingsProps> = ({
   mode,
@@ -43,43 +15,79 @@ const NetworkSettings: React.FC<NetworkSettingsProps> = ({
   onConfigChange,
   serverURL,
   setServerURL,
-  nasURL,
-  setNasURL,
   errors = {},
-  // 提供完整的預設值
-  fieldRefs = {
-    ssid: createRef<HTMLInputElement>(),
-    password: createRef<HTMLInputElement>(),
-    ip: createRef<HTMLInputElement>(),
-    netmask: createRef<HTMLInputElement>(),
-    gateway: createRef<HTMLInputElement>(),
-    dns: createRef<HTMLInputElement>(),
-    serverURL: createRef<HTMLInputElement>()
-  },
+  onErrorChange,
+  fieldRefs
 }) => {
   const { t } = useTranslation();
 
-  if (!shouldShowNetworkSettings(mode)) {
-    return null;
-  }
+  // 根據模式設定 serverURL 的預設值
+  useEffect(() => {
+    if (mode === 'cms') {
+      setServerURL('https://api.ezread.com.tw/schedule');
+    } else if (mode === 'nas') {
+      setServerURL('');
+    }
+  }, [mode, setServerURL]);
+
+  // 轉換配置為驗證用的格式
+  const configAsRecord: Record<string, string> = {
+    wifi: config.wifi,
+    ssid: config.ssid,
+    password: config.password,
+    ip: config.ip || '',
+    netmask: config.netmask || '',
+    gateway: config.gateway || '',
+    dns: config.dns || '',
+    serverURL: serverURL
+  };
 
   const handleFieldChange = (field: keyof NetworkConfig, value: string) => {
     onConfigChange({ ...config, [field]: value });
+    
+    if (isValidatableField(field)) {
+      const validationResult = validateField(
+        t, 
+        field as ValidatableField, 
+        value,
+        configAsRecord,
+        mode  // 傳入當前模式供驗證使用
+      );
+      
+      if (onErrorChange) {
+        onErrorChange(field, validationResult);
+      }
+
+      if (validationResult && fieldRefs[field]) {
+        fieldRefs[field].current?.focus();
+      }
+    }
   };
 
-  const staticIPErrors = {
-    ip: errors.ip,
-    netmask: errors.netmask,
-    gateway: errors.gateway,
-    dns: errors.dns
+  const handleServerUrlChange = (value: string) => {
+    setServerURL(value);
+    const validationResult = validateField(
+      t,
+      'serverURL',
+      value,
+      configAsRecord,
+      mode  // 傳入當前模式以使用對應的驗證規則
+    );
+    
+    if (onErrorChange) {
+      onErrorChange('serverURL', validationResult);
+    }
   };
 
-  const staticIPRefs = {
-    ip: fieldRefs.ip,
-    netmask: fieldRefs.netmask,
-    gateway: fieldRefs.gateway,
-    dns: fieldRefs.dns
+  // Type guard 函數
+  const isValidatableField = (field: string): field is ValidatableField => {
+    return ['wifi', 'ssid', 'password', 'ip', 'netmask', 'gateway', 'dns', 'serverURL'].includes(field);
   };
+
+  // 只在非 auto 模式下顯示網路設定
+  if (mode === 'auto') {
+    return null;
+  }
 
   return (
     <Paper sx={{ p: 3, mb: 2 }}>
@@ -94,7 +102,7 @@ const NetworkSettings: React.FC<NetworkSettingsProps> = ({
           <SelectorField label={t('common.label.wifiSetting')}>
             <WifiSelector
               value={config.wifi}
-              onChange={(value) => onConfigChange({ ...config, wifi: value })}
+              onChange={(value) => handleFieldChange('wifi', value)}
             />
           </SelectorField>
         </Grid>
@@ -127,19 +135,29 @@ const NetworkSettings: React.FC<NetworkSettingsProps> = ({
           <StaticIPFields
             config={config}
             onFieldChange={handleFieldChange}
-            errors={staticIPErrors}
-            fieldRefs={staticIPRefs}
+            errors={{
+              ip: errors.ip,
+              netmask: errors.netmask,
+              gateway: errors.gateway,
+              dns: errors.dns
+            }}
+            fieldRefs={{
+              ip: fieldRefs.ip,
+              netmask: fieldRefs.netmask,
+              gateway: fieldRefs.gateway,
+              dns: fieldRefs.dns
+            }}
           />
         )}
 
-        {mode === 'cms' && (
+        {(mode === 'cms' || mode === 'nas') && (
           <Grid item xs={12}>
             <FormField
-              label={t('common.label.serverURL')}
+              label={t(`common.label.serverURL.${mode}`)}
               value={serverURL}
-              onChange={setServerURL}
+              onChange={handleServerUrlChange}
               error={errors.serverURL}
-              placeholder={t('common.placeholder.serverURL')}
+              placeholder={t(`common.placeholder.serverURL.${mode}`)}
               inputRef={fieldRefs.serverURL}
             />
           </Grid>

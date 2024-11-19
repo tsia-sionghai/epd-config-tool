@@ -27,8 +27,10 @@
       "netmask": "Netmask",
       "gateway": "Gateway",
       "dns": "DNS",
-      "serverURL": "CMS Server URL",
-      "nasURL": "NAS Download URL",
+      "serverURL": {
+        "cms": "CMS Server URL",
+        "nas": "NAS Download URL"
+      },
       "sdCardPath": "SD Card Path"
     },
     "button": {
@@ -52,7 +54,10 @@
       "netmask": "Netmask",
       "gateway": "Gateway",
       "dns": "DNS",
-      "nasURL": "NAS Download URL",
+      "serverURL": {
+        "cms": "https://api.ezread.com.tw/schedule",
+        "nas": "NAS Download URL"
+      },
       "dragOrSelect": "請將圖片拖曳至此 或",
       "selectImage": "選擇圖片"
     },
@@ -102,7 +107,38 @@
       "generateConfigFailed": "產生設定檔案失敗",
       "imageProcessingFailed": "處理圖片 {{name}} 時發生錯誤",
       "insufficientSpace": "儲存空間不足，操作已自動取消",
-      "spaceSuggestions": "建議：\n• 清理 SD 卡空間\n• 使用較大容量的 SD 卡\n• 減少圖片數量或降低解析度"
+      "spaceSuggestions": "建議：\n• 清理 SD 卡空間\n• 使用較大容量的 SD 卡\n• 減少圖片數量或降低解析度",
+      "ssid": {
+        "required": "請輸入 SSID",
+        "invalid": "SSID 只能包含字母、數字、連字符號、底線和點，且必須以字母或數字開頭和結尾",
+        "tooLong": "SSID 長度不能超過 32 個字元"
+      },
+      "password": {
+        "invalid": "密碼長度必須在 8-63 個字元之間"
+      },
+      "ip": {
+        "invalid": "無效的 IP 位址格式"
+      },
+      "netmask": {
+        "invalid": "無效的子網路遮罩格式"
+      },
+      "gateway": {
+        "invalid": "無效的閘道器位址格式",
+        "subnet": "閘道器必須在相同網段內"
+      },
+      "dns": {
+        "invalid": "無效的 DNS 伺服器位址格式"
+      },
+      "serverURL": {
+        "required": {
+          "cms": "請輸入 CMS Server URL",
+          "nas": "請輸入 NAS Download URL"
+        },
+        "invalid": {
+          "cms": "無效的 CMS Server URL 格式",
+          "nas": "無效的 NAS URL 格式，請使用支援的通訊協定（smb://, nfs://, ftp://, http(s)://）"
+        }
+      }
     }
   },
   "mode": {
@@ -131,6 +167,48 @@
     "normal": {
       "title": "Normal Mode",
       "description": "畫面刷新後，機台將會持續醒著。"
+    }
+  },
+  "network": {
+    "error": {
+      "wifi": {
+        "required": "請選擇 WiFi 連線方式",
+        "invalid": "無效的 WiFi 連線方式"
+      },
+      "ssid": {
+        "required": "請輸入 SSID",
+        "invalid": "無效的 SSID 格式"
+      },
+      "password": {
+        "required": "請輸入 WiFi 密碼",
+        "invalid": "密碼長度必須在 8-63 個字元之間"
+      },
+      "ip": {
+        "required": "請輸入 IP 位址",
+        "invalid": "無效的 IP 位址格式"
+      },
+      "netmask": {
+        "required": "請輸入子網路遮罩",
+        "invalid": "無效的子網路遮罩格式"
+      },
+      "gateway": {
+        "required": "請輸入閘道器位址",
+        "invalid": "無效的閘道器位址格式",
+        "subnet": "閘道器必須在相同網段內"
+      },
+      "dns": {
+        "required": "請輸入 DNS 伺服器位址",
+        "invalid": "無效的 DNS 伺服器位址格式"
+      },
+      "serverURL": {
+        "required": "請輸入伺服器網址",
+        "invalid": "無效的伺服器網址格式"
+      },
+      "nasURL": {
+        "required": "請輸入 NAS 下載網址",
+        "invalid": "無效的 NAS 網址格式",
+        "protocol": "NAS 網址必須使用支援的通訊協定（smb://, nfs://, ftp://, http://）"
+      }
     }
   },
   "dialog": {

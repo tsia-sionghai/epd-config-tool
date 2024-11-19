@@ -54,13 +54,14 @@ const LabelText = styled(Typography)({
   whiteSpace: 'nowrap',  // 防止文字換行
 });
 
-interface FormFieldProps {
+export interface FormFieldProps {
   label: string;
   value: string;
   onChange: (value: string) => void;
   error?: string;
   placeholder?: string;
-  inputRef?: React.Ref<HTMLInputElement>;
+  inputRef?: React.RefObject<HTMLInputElement>;
+  type?: string;  // 加入 type prop 支援
 }
 
 const FormField: React.FC<FormFieldProps> = ({

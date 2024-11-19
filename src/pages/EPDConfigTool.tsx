@@ -1,5 +1,5 @@
 // src/pages/EPDConfigTool.tsx
-import React, { useEffect, useState, useMemo } from 'react';
+import React, { useEffect, useState, useMemo, useCallback } from 'react';
 import { 
   Alert, 
   Backdrop, 
@@ -15,7 +15,8 @@ import {
   PowerModeType,
   TimeZoneType,
   NetworkConfig,
-  ImageConfig} from '../types/common';
+  ImageConfig
+} from '../types/common';
 import { 
   createConfigFile, 
   createDirectory, 
@@ -24,13 +25,13 @@ import {
   checkSDCardEmpty,
   cleanupSDCard
 } from '../utils/fileSystem';
-// 新增 configGenerator 相關 import
 import { 
   generateConfig, 
   convertToConfigFile 
 } from '../utils/configGenerator';
 import { uploadImageToBin } from '../services/api';
 import { logFileDetails } from '../utils/diagnostics';
+import { validateNetworkSettings } from '../utils/networkValidators';
 
 import PageHeader from '../components/PageHeader';
 import BasicSettings from '../components/BasicSettings';
@@ -40,7 +41,7 @@ import SDCardPathSettings from '../components/SDCardPathSettings';
 import ActionButtons from '../components/ActionButtons';
 import { useTranslation } from 'react-i18next';
 
-// Styled Backdrop
+// Styled Components
 const StyledBackdrop = styled(Backdrop)(({ theme }) => ({
   zIndex: theme.zIndex.drawer + 1,
   color: '#fff',
@@ -50,6 +51,14 @@ const StyledBackdrop = styled(Backdrop)(({ theme }) => ({
   gap: theme.spacing(2),
 }));
 
+// Helper Types
+interface FileError extends Error {
+  name: string;
+  message: string;
+  stack?: string;
+}
+
+// 計算預估空間大小
 const calculateEstimatedSize = (
   images: ImageConfig['images'], 
   mode: ModeType
@@ -72,14 +81,14 @@ const calculateEstimatedSize = (
   return 0; // 其他模式不需要額外空間
 };
 
-// isStorageError helper function
+// 檢查儲存空間錯誤
 const isStorageError = (error: Error): boolean => {
   return error.name === 'QuotaExceededError' || 
          error.message.includes('quota') || 
          error.message.includes('space');
 };
 
-// 在文件頂部 import 區域加入
+// 寫入檔案的輔助函數
 async function writeFile(
   directory: FileSystemDirectoryHandle,
   fileName: string,
@@ -96,13 +105,169 @@ async function writeFile(
   }
 }
 
+// 取得平台資訊
+const getPlatformInfo = () => {
+  if ('userAgentData' in navigator && navigator.userAgentData) {
+    return {
+      platform: navigator.userAgentData.platform || 'unknown',
+      mobile: navigator.userAgentData.mobile || false,
+      brands: navigator.userAgentData.brands || []
+    };
+  }
+  
+  return {
+    platform: 'unknown',
+    mobile: /Mobile|Android|iPhone/i.test(navigator.userAgent),
+    brands: []
+  };
+};
+
+// 定義翻譯選項的介面
+interface TranslationOptions {
+  imageNumber?: number;
+  totalImages?: number;
+  name?: string;
+  current?: number;
+  total?: number;
+  interpolation?: {
+    escapeValue: boolean;
+  };
+}
+
+// 處理圖片的主要函數
+async function processImages(
+  images: ImageConfig['images'],
+  imageDir: FileSystemDirectoryHandle,
+  size: string,
+  setStatus: (status: string) => void,
+  t: (key: string, options?: TranslationOptions) => string
+): Promise<void> {
+  console.log('Starting processImages diagnostic:', { 
+    imageCount: images.length, 
+    size,
+    platformInfo: getPlatformInfo(),
+    userAgent: navigator.userAgent
+  });
+
+  try {
+    // 複製並重命名圖片
+    setStatus(t('common.status.copyingImages'));
+
+    for (const [index, image] of images.entries()) {
+      try {
+        console.log(`Original file ${index + 1} diagnostic:`, await logFileDetails(image.file));
+
+        const extension = image.name.split('.').pop() || '';
+        const newFileName = `${(index + 1).toString()}.${extension}`;
+
+        setStatus(t('common.status.copyingImages', { 
+          imageNumber: index + 1,
+          totalImages: images.length,
+          name: newFileName
+        }));
+
+        await copyImages([{ ...image, name: newFileName, order: index }], imageDir);
+        console.log(`Copied and renamed image to ${newFileName}`);
+      } catch (err) {
+        const error = err as FileError;
+        if (isStorageError(error)) {
+          console.error('Storage error while copying images:', {
+            error: error.message,
+            errorType: error.name,
+            errorStack: error.stack
+          });
+          throw new Error(t('common.error.insufficientSpace'));
+        }
+        throw error;
+      }
+    }
+
+    // 處理每個圖片的轉換
+    for (let index = 0; index < images.length; index++) {
+      try {
+        const originalImage = images[index];
+        const extension = originalImage.name.split('.').pop() || '';
+        const newFileName = `${(index + 1).toString()}.${extension}`;
+
+        const statusText = t('common.status.uploadingImage', { 
+          current: index + 1, 
+          total: images.length,
+          name: newFileName 
+        });
+        console.log(statusText);
+        setStatus(statusText);
+
+        const fileHandle = await imageDir.getFileHandle(newFileName);
+        const file = await fileHandle.getFile();
+        console.log(`Processing renamed file ${index + 1} diagnostic:`, await logFileDetails(file));
+
+        const fileBlob = new Blob([await file.arrayBuffer()], { type: file.type });
+        const newFile = new File([fileBlob], file.name, { 
+          type: file.type,
+          lastModified: file.lastModified 
+        });
+        console.log(`File copy diagnostic:`, await logFileDetails(newFile));
+
+        const result = await uploadImageToBin(newFile, size);
+        console.log('Upload result:', result);
+
+        // 處理 bin 檔案
+        if (result.bin_url && result.bin_url.length > 0) {
+          setStatus(t('common.status.downloadingBinFiles', { 
+            current: index + 1, 
+            total: images.length 
+          }));
+
+          for (let binIndex = 0; binIndex < result.bin_url.length; binIndex++) {
+            const url = result.bin_url[binIndex];
+            const secureUrl = url.replace('http://', 'https://');
+            console.log('Downloading bin file:', secureUrl);
+            const response = await fetch(secureUrl);
+            
+            if (!response.ok) {
+              throw new Error(`Failed to download bin file: ${secureUrl}`);
+            }
+            
+            const blob = await response.blob();
+            const binFileName = `${index + 1}_${binIndex}.bin`;
+            
+            await writeFile(imageDir, binFileName, blob);
+            console.log(`Saved bin file as: ${binFileName}`);
+          }
+        }
+      } catch (err) {
+        const error = err as FileError;
+        console.error(`Error processing image ${(index + 1).toString()}:`, {
+          error: error.message,
+          errorType: error.name,
+          errorStack: error.stack
+        });
+        if (isStorageError(error)) {
+          throw new Error(t('common.error.insufficientSpace'));
+        }
+        throw new Error(t('common.error.imageProcessingFailed', { 
+          name: `${(index + 1).toString()}`
+        }));
+      }
+    }
+  } catch (err) {
+    const error = err as FileError;
+    console.error('Error in processImages:', {
+      error: error.message,
+      errorType: error.name,
+      errorStack: error.stack
+    });
+    throw error;
+  }
+}
+
 const EPDConfigurationTool: React.FC = () => {
   const { t } = useTranslation();
 
-  // 檢查是否是支援的瀏覽器
+  // 瀏覽器支援檢查
   const isSupportedBrowser = useMemo(() => checkBrowserSupport(), []);
 
-  // States for UI feedback
+  // UI 狀態
   const [sdCardHandle, setSdCardHandle] = useState<FileSystemDirectoryHandle | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [processingStatus, setProcessingStatus] = useState('');
@@ -116,13 +281,7 @@ const EPDConfigurationTool: React.FC = () => {
     message: ''
   });
 
-  useEffect(() => {
-    if (!isSupportedBrowser) {
-      setShowBrowserWarning(true);
-    }
-  }, [isSupportedBrowser]);
-
-  // Basic settings state
+  // 基本設定狀態
   const [customer, setCustomer] = useState('NB');
   const [customerError, setCustomerError] = useState<string>('');
   const [mode, setMode] = useState<ModeType>('auto');
@@ -130,183 +289,159 @@ const EPDConfigurationTool: React.FC = () => {
   const [timeZone, setTimeZone] = useState<TimeZoneType>('GMT+08:00');
   const [sdCardPath, setSdCardPath] = useState('');
 
-  interface FileError extends Error {
-    name: string;
-    message: string;
-    stack?: string;
-  }
+  // 網路設定狀態
+  const [networkConfig, setNetworkConfig] = useState<NetworkConfig>({
+    wifi: 'wpa2Personal',
+    ssid: '',
+    password: '',
+    ip: '',
+    netmask: '',
+    gateway: '',
+    dns: '',
+  });
 
-  const getPlatformInfo = () => {
-    if ('userAgentData' in navigator && navigator.userAgentData) {
-      return {
-        platform: navigator.userAgentData.platform || 'unknown',
-        mobile: navigator.userAgentData.mobile || false,
-        brands: navigator.userAgentData.brands || []
-      };
-    }
-    
-    // 降級方案：返回基本資訊
-    return {
-      platform: 'unknown',
-      mobile: /Mobile|Android|iPhone/i.test(navigator.userAgent),
-      brands: []
-    };
+  // ServerURL 狀態和處理
+  const [serverURL, setServerURL] = useState('');
+  const [networkErrors, setNetworkErrors] = useState<Record<string, string>>({});
+
+  // 當模式改變時更新 ServerURL
+  useEffect(() => {
+    setServerURL(mode === 'cms' ? 'https://api.ezread.com.tw/schedule' : '');
+  }, [mode]);
+
+  // 圖片設定狀態
+  const [imageConfig, setImageConfig] = useState<ImageConfig>({
+    size: '31.5',
+    rotate: 0,
+    interval: 180,
+    images: []
+  });
+
+  // 欄位引用
+  const fieldRefs = {
+    ssid: React.createRef<HTMLInputElement>(),
+    password: React.createRef<HTMLInputElement>(),
+    ip: React.createRef<HTMLInputElement>(),
+    netmask: React.createRef<HTMLInputElement>(),
+    gateway: React.createRef<HTMLInputElement>(),
+    dns: React.createRef<HTMLInputElement>(),
+    serverURL: React.createRef<HTMLInputElement>()
   };
 
-  // processImages 需放在 handleGenerateConfig 之前
-  const processImages = async (
-    images: ImageConfig['images'],
-    imageDir: FileSystemDirectoryHandle,
-    size: string,
-    setStatus: (status: string) => void
-  ) => {
-    console.log('Starting processImages diagnostic:', { 
-      imageCount: images.length, 
-      size,
-      platformInfo: getPlatformInfo(),
-      userAgent: navigator.userAgent
+  // 瀏覽器支援檢查效果
+  useEffect(() => {
+    if (!isSupportedBrowser) {
+      setShowBrowserWarning(true);
+    }
+  }, [isSupportedBrowser]);
+
+  // 事件處理函數
+  const handleCustomerChange = useCallback((value: string) => {
+    setCustomer(value);
+    if (customerError) {
+      setCustomerError('');
+    }
+  }, [customerError]);
+
+  const handleNetworkError = useCallback((field: string, error: string) => {
+    setNetworkErrors(prev => ({
+      ...prev,
+      [field]: error
+    }));
+  }, []);
+
+  const handleNetworkConfigChange = useCallback((updates: Partial<NetworkConfig>) => {
+    setNetworkConfig(prev => {
+      if ('wifi' in updates) {
+        const newConfig = { ...prev, ...updates };
+        
+        switch (updates.wifi) {
+          case 'open':
+            return {
+              ...newConfig,
+              password: '',
+              ip: '',
+              netmask: '',
+              gateway: '',
+              dns: ''
+            };
+            
+          case 'wpa2Personal':
+            return {
+              ...newConfig,
+              ip: '',
+              netmask: '',
+              gateway: '',
+              dns: ''
+            };
+            
+          case 'staticIP':
+            return newConfig;
+            
+          default:
+            return newConfig;
+        }
+      }
+      
+      return { ...prev, ...updates };
     });
-  
-    try {
-      // 先複製並重命名所有圖片，保留原始副檔名
-      setStatus(t('common.status.copyingImages'));
+  }, []);
 
-      for (const [index, image] of images.entries()) {
-        try {
-          // 記錄原始檔案資訊
-          console.log(`Original file ${index + 1} diagnostic:`, await logFileDetails(image.file));
-
-          const extension = image.name.split('.').pop() || '';
-          const newFileName = `${(index + 1).toString()}.${extension}`;
-
-          // 更新狀態訊息，加入當前進度
-          setStatus(t('common.status.copyingImages', { 
-            imageNumber: index + 1,
-            totalImages: images.length,
-            name: newFileName
-          }));
-
-          await copyImages([{ ...image, name: newFileName, order: index }], imageDir);
-          console.log(`Copied and renamed image to ${newFileName}`);
-        } catch (err) {
-          const error = err as FileError;
-          if (isStorageError(error)) {
-            console.error('Storage error while copying images:', {
-              error: error.message,
-              errorType: error.name,
-              errorStack: error.stack
-            });
-            throw new Error(t('common.error.insufficientSpace'));
-          }
-          throw error;
-        }
-      }
-  
-      // 然後使用重命名後的圖片進行轉換
-      for (let index = 0; index < images.length; index++) {
-        try {
-          const originalImage = images[index];
-          const extension = originalImage.name.split('.').pop() || '';
-          const newFileName = `${(index + 1).toString()}.${extension}`;
-  
-          const statusText = t('common.status.uploadingImage', { 
-            current: index + 1, 
-            total: images.length,
-            name: newFileName 
-          });
-          console.log(statusText);
-          setStatus(statusText);
-  
-          // 取得重命名後的圖片檔案並進行診斷
-          const fileHandle = await imageDir.getFileHandle(newFileName);
-          const file = await fileHandle.getFile();
-          console.log(`Processing renamed file ${index + 1} diagnostic:`, await logFileDetails(file));
-  
-          // 使用 Blob 建立新的檔案副本
-          const fileBlob = new Blob([await file.arrayBuffer()], { type: file.type });
-          const newFile = new File([fileBlob], file.name, { 
-            type: file.type,
-            lastModified: file.lastModified 
-          });
-          console.log(`File copy diagnostic:`, await logFileDetails(newFile));
-  
-          const result = await uploadImageToBin(newFile, size);
-          console.log('Upload result:', result);
-  
-          // 修改 processImages 函數中處理 bin 檔案的部分
-          if (result.bin_url && result.bin_url.length > 0) {
-            const downloadStatus = t('common.status.downloadingBinFiles', { 
-              current: index + 1, 
-              total: images.length 
-            });
-            console.log(downloadStatus);
-            setStatus(downloadStatus);
-
-            // 處理每個 bin 檔案
-            for (let binIndex = 0; binIndex < result.bin_url.length; binIndex++) {
-              try {
-                const url = result.bin_url[binIndex];
-                // 將 HTTP URL 轉換為 HTTPS
-                const secureUrl = url.replace('http://', 'https://');
-                console.log('Downloading bin file:', secureUrl);
-                const response = await fetch(secureUrl);
-                
-                if (!response.ok) {
-                  throw new Error(`Failed to download bin file: ${secureUrl}`);
-                }
-                
-                const blob = await response.blob();
-                
-                // 新的命名邏輯：使用圖片序號_bin序號的格式
-                const imageNumber = index + 1;  // 圖片序號（從1開始）
-                const binFileName = `${imageNumber}_${binIndex}.bin`;
-                
-                await writeFile(imageDir, binFileName, blob);
-                console.log(`Saved bin file as: ${binFileName}`);
-              } catch (error) {
-                console.error(`Error processing bin file ${binIndex} for image ${index + 1}:`, error);
-                throw error;
-              }
-            }
-          }
-        } catch (err) {
-          const error = err as FileError;
-          console.error(`Error processing image ${(index + 1).toString()}:`, {
-            error: error.message,
-            errorType: error.name,
-            errorStack: error.stack
-          });
-          if (isStorageError(error)) {
-            throw new Error(t('common.error.insufficientSpace'));
-          }
-          throw new Error(t('common.error.imageProcessingFailed', { 
-            name: `${(index + 1).toString()}`
-          }));
-        }
-      }
-    } catch (err) {
-      const error = err as FileError;
-      console.error('Error in processImages:', {
-        error: error.message,
-        errorType: error.name,
-        errorStack: error.stack
-      });
-      throw error;
+  const handleImageConfigChange = useCallback((
+    updates: Partial<ImageConfig> | ((prev: ImageConfig) => ImageConfig)
+  ) => {
+    if (typeof updates === 'function') {
+      setImageConfig(updates);
+    } else {
+      setImageConfig(prev => ({ ...prev, ...updates }));
     }
-  };
+  }, []);
 
+  const handleSDCardError = useCallback((message: string) => {
+    setError({
+      show: true,
+      message
+    });
+  }, []);
+
+  // handleGenerateConfig 函數
   const handleGenerateConfig = async () => {
     try {
       // 清除之前的錯誤訊息
       setCustomerError('');
-  
+
       // 1. 檢查共同必填項目: Customer
       if (!customer.trim()) {
         setCustomerError(t('common.error.customerRequired'));
         return;
       }
-  
-      // 2. 檢查 SD Card 是否已選擇
+
+      // 2. 檢查網路設定 (CMS 和 NAS 模式)
+      if (mode === 'cms' || mode === 'nas') {
+        const networkValidation = validateNetworkSettings(
+          t,
+          mode,
+          networkConfig,
+          serverURL
+        );
+
+        if (!networkValidation.isValid) {
+          const firstErrorField = Object.keys(networkValidation.errors)[0] as keyof typeof fieldRefs;
+          
+          // 聚焦到第一個錯誤欄位
+          if (firstErrorField && fieldRefs[firstErrorField]?.current) {
+            fieldRefs[firstErrorField].current.focus();
+          }
+
+          setError({
+            show: true,
+            message: Object.values(networkValidation.errors)[0]
+          });
+          return;
+        }
+      }
+
+      // 3. 檢查 SD Card 是否已選擇
       if (!sdCardHandle) {
         setError({
           show: true,
@@ -314,16 +449,16 @@ const EPDConfigurationTool: React.FC = () => {
         });
         return;
       }
-  
-      // 3. 檢查 SD Card 是否為空
+
+      // 4. 檢查 SD Card 是否為空
       setProcessingStatus(t('common.status.checkingSDCard'));
       const isEmpty = await checkSDCardEmpty(sdCardHandle, true);
       if (!isEmpty) {
         throw new Error(t('common.error.sdCardNotEmpty'));
       }
-  
-      // 4. 檢查模式相關的必填欄位
-      if (mode === 'auto' || mode === 'nas') {  // 修改判斷條件
+
+      // 5. 檢查特定模式的必要條件
+      if (mode === 'auto' || mode === 'nas') {
         if (!imageConfig.images.length) {
           setError({
             show: true,
@@ -331,60 +466,59 @@ const EPDConfigurationTool: React.FC = () => {
           });
           return;
         }
-      
-        // 空間檢查（在任何需要處理圖片的模式下進行）
+
+        // 空間檢查
         setProcessingStatus(t('common.status.estimatingSpace'));
-        const estimatedSize = calculateEstimatedSize(imageConfig.images, mode);  // 傳入 mode 參數
+        const estimatedSize = calculateEstimatedSize(imageConfig.images, mode);
         const shouldContinue = window.confirm(
           t('common.warning.spaceRequirement', { 
             size: Math.ceil(estimatedSize / (1024 * 1024))
           }) + '\n\n' + 
           t('common.warning.spaceConfirmation')
         );
-      
+
         if (!shouldContinue) {
           return;
         }
       } else if (mode === 'cms') {
-        const errors = [];
-  
-        if (!networkConfig.ssid.trim()) errors.push('SSID');
-        if (!serverURL.trim()) errors.push('CMS Server URL');
+        const requiredFields = [];
+
+        if (!networkConfig.ssid.trim()) requiredFields.push('SSID');
+        if (!serverURL.trim()) requiredFields.push('CMS Server URL');
 
         if (['wpa2Personal', 'staticIP'].includes(networkConfig.wifi) && 
             !networkConfig.password.trim()) {
-          errors.push('WiFi Password');
+          requiredFields.push('WiFi Password');
         }
 
         if (networkConfig.wifi === 'staticIP') {
-          if (!networkConfig.ip.trim()) errors.push('IP Address');
-          if (!networkConfig.netmask.trim()) errors.push('Netmask');
-          if (!networkConfig.gateway.trim()) errors.push('Gateway');
-          if (!networkConfig.dns.trim()) errors.push('DNS');
+          if (!networkConfig.ip.trim()) requiredFields.push('IP Address');
+          if (!networkConfig.netmask.trim()) requiredFields.push('Netmask');
+          if (!networkConfig.gateway.trim()) requiredFields.push('Gateway');
+          if (!networkConfig.dns.trim()) requiredFields.push('DNS');
         }
 
-        if (errors.length > 0) {
+        if (requiredFields.length > 0) {
           setError({
             show: true,
             message: t('common.error.requiredFields', { 
-              fields: errors.join(', ') 
+              fields: requiredFields.join(', ') 
             })
           });
-          return;  // 直接返回，不要拋出錯誤
+          return;
         }
       }
 
-      // 開始處理，顯示 Loading
+      // 開始處理配置
       setIsProcessing(true);
-  
+
       try {
-        // 5. 建立必要檔案和目錄
+        // 6. 建立必要檔案和目錄
         setProcessingStatus(t('common.status.creatingFiles'));
         await createEmptyFile(sdCardHandle, 'show_info');
-  
-        // 6. 處理圖片（如果是 auto 或 nas 模式）
+
+        // 7. 處理圖片（auto 或 nas 模式）
         if (mode === 'auto' || mode === 'nas') {
-          // 圖片處理邏輯保持不變
           setProcessingStatus(t('common.status.creatingDirectory'));
           const imageDir = await createDirectory(sdCardHandle, 'image/slideshow');
           
@@ -393,7 +527,8 @@ const EPDConfigurationTool: React.FC = () => {
               imageConfig.images,
               imageDir,
               imageConfig.size,
-              setProcessingStatus
+              setProcessingStatus,
+              t
             );
           } catch (error) {
             if (isStorageError(error as Error)) {
@@ -404,27 +539,23 @@ const EPDConfigurationTool: React.FC = () => {
             throw error;
           }
         }
-  
-        // 7. 建立設定檔 - 這是主要的修改部分
+
+        // 8. 建立設定檔
         setProcessingStatus(t('common.status.creatingConfig'));
         
-        // 使用 generateConfig 生成內部配置
         const internalConfig = generateConfig(
           customer,
           mode,
           powerMode,
           timeZone,
           imageConfig,
-          mode === 'cms' ? {
+          mode === 'cms' || mode === 'nas' ? {
             ...networkConfig,
-            serverURL: serverURL
+            serverURL
           } : undefined
         );
 
-        // 轉換為檔案格式
         const configFile = convertToConfigFile(internalConfig);
-        
-        // 寫入設定檔
         await createConfigFile(sdCardHandle, configFile);
         setShowSuccess(true);
 
@@ -446,101 +577,8 @@ const EPDConfigurationTool: React.FC = () => {
       });
     } finally {
       setIsProcessing(false);
+      setProcessingStatus('');
     }
-  };
-
-  // 當 customer 值改變時清除錯誤訊息
-  const handleCustomerChange = (value: string) => {
-    setCustomer(value);
-    if (customerError) {
-      setCustomerError('');
-    }
-  };
-
-  // Network settings state
-  const [networkConfig, setNetworkConfig] = useState<NetworkConfig>({
-    wifi: 'wpa2Personal',
-    ssid: '',
-    password: '',
-    ip: '',
-    netmask: '',
-    gateway: '',
-    dns: '',
-  });
-
-  // Image settings state
-  const [imageConfig, setImageConfig] = useState<ImageConfig>({
-    size: '31.5',
-    rotate: 0,  // 13.3" 的預設值為 90 度
-    interval: 180,
-    images: []
-  });
-
-  // Additional settings state
-  const [serverURL, setServerURL] = useState('https://api.ezread.com.tw/schedule');
-  const [nasURL, setNasURL] = useState('');
-  
-  const handleNetworkConfigChange = (updates: Partial<NetworkConfig>) => {
-    setNetworkConfig(prev => {
-      // 如果是更新 wifi 模式
-      if ('wifi' in updates) {
-        const newConfig = { ...prev, ...updates };
-        
-        // 根據新的 wifi 模式重設相關欄位
-        switch (updates.wifi) {
-          case 'open':
-            // Open 模式：清除密碼和網路設定
-            return {
-              ...newConfig,
-              password: '',  // 清除密碼
-              ip: '',       // 清除網路設定
-              netmask: '',
-              gateway: '',
-              dns: ''
-            };
-            
-          case 'wpa2Personal':
-            // WPA2 Personal：清除網路設定
-            return {
-              ...newConfig,
-              ip: '',
-              netmask: '',
-              gateway: '',
-              dns: ''
-            };
-            
-          case 'staticIP':
-            // Static IP：保留所有欄位
-            return newConfig;
-            
-          default:
-            return newConfig;
-        }
-      }
-      
-      // 其他更新直接套用
-      return { ...prev, ...updates };
-    });
-  };
-
-  const handleImageConfigChange = (
-    updates: Partial<ImageConfig> | ((prev: ImageConfig) => ImageConfig)
-  ) => {
-    if (typeof updates === 'function') {
-      setImageConfig(updates);
-    } else {
-      setImageConfig(prev => {
-        // 所有尺寸的 rotate 預設值都是 0，移除特殊處理
-        return { ...prev, ...updates };
-      });
-    }
-  };
-
-  const handleSDCardError = (message: string) => {
-    setError({
-      show: true,
-      message
-    });
   };
 
   return (
@@ -563,7 +601,6 @@ const EPDConfigurationTool: React.FC = () => {
         mode={mode}
         config={imageConfig}
         onConfigChange={handleImageConfigChange}
-        // 新增需要的 props
         customer={customer}
         powerMode={powerMode}
         timeZone={timeZone}
@@ -575,26 +612,17 @@ const EPDConfigurationTool: React.FC = () => {
         onConfigChange={handleNetworkConfigChange}
         serverURL={serverURL}
         setServerURL={setServerURL}
-        nasURL={nasURL}
-        setNasURL={setNasURL}
-        errors={{}} // Add appropriate error handling here
-        fieldRefs={{
-          ssid: React.createRef<HTMLInputElement>(),
-          password: React.createRef<HTMLInputElement>(),
-          ip: React.createRef<HTMLInputElement>(),
-          netmask: React.createRef<HTMLInputElement>(),
-          gateway: React.createRef<HTMLInputElement>(),
-          dns: React.createRef<HTMLInputElement>(),
-          serverURL: React.createRef<HTMLInputElement>(),
-        }}
+        errors={networkErrors}
+        onErrorChange={handleNetworkError}
+        fieldRefs={fieldRefs}
       />
 
       <SDCardPathSettings
         sdCardPath={sdCardPath}
         setSdCardPath={setSdCardPath}
         onDirectorySelect={setSdCardHandle}
-        disabled={!SDCardPathSettings}
-        onError={handleSDCardError}  // 新增錯誤處理函數
+        disabled={!isSupportedBrowser}
+        onError={handleSDCardError}
       />
 
       <ActionButtons
@@ -635,22 +663,11 @@ const EPDConfigurationTool: React.FC = () => {
       <Snackbar
         open={error.show}
         autoHideDuration={6000}
-        onClose={(_event, reason) => {
-          setError({ ...error, show: false });
-          // 如果是點擊關閉按鈕且錯誤訊息是 customerRequired
-          if (
-            reason === 'clickaway' || 
-            error.message !== t('common.error.customerRequired')
-          ) {
-            return;
-          }
-        }}
+        onClose={() => setError({ ...error, show: false })}
         anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
       >
         <Alert 
-          onClose={() => {
-            setError({ ...error, show: false });
-          }}
+          onClose={() => setError({ ...error, show: false })}
           severity="error"
           variant="filled"
           sx={{ width: '100%' }}
