@@ -85,7 +85,7 @@ const IntervalSelector: React.FC<IntervalSelectorProps> = ({
         type="info"
         message={t('common.hint.intervalMin')}
         containerSx={{ ml: 2 }}
-        typographySx={{ color: theme.palette.text.primary }}
+        typographySx={{ color: theme.palette.text.secondary }}
       />
     </Box>
   );
