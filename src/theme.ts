@@ -37,7 +37,7 @@ const theme = createTheme({
       dark: colors.brightPurple,
     },
     error: {
-      main: colors.red,
+      main: colors.darkRed,
       light: colors.red20,
       dark: colors.darkRed,
     },

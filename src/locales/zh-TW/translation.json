@@ -64,9 +64,6 @@
       "dragOrSelect": "請將圖片拖曳至此 或",
       "selectImage": "選擇圖片"
     },
-    "tooltip": {
-      "nasNotAvailable": "NAS 模式功能尚未開放，敬請期待"
-    },
     "unit": {
       "minutes": "minutes"
     },
