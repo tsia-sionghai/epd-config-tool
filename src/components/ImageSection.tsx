@@ -95,7 +95,8 @@ const ImageSection: React.FC<ImageSectionProps> = ({
     WifiSetting: "",
     ServerURL: "",
     PackageName: "",
-    ActivityName: ""
+    ActivityName: "",
+    ServerSyncInterval: "10"  // 加入 ServerSyncInterval
   }), [customer, mode, powerMode, timeZone, config.size, config.rotate, config.interval]);
 
   const handleDownload = useCallback(async (overwrite = false) => {

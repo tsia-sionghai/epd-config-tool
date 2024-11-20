@@ -10,7 +10,7 @@ import {
   DropResult 
 } from '@hello-pangea/dnd';
 import { useTranslation } from 'react-i18next';
-import { ImageFile } from '../types/common';
+import { ImageFile, SizeType } from '../types/common';
 import { getThumbnailDimensions } from '../utils/imageUtils';
 
 const DropzoneArea = styled(Box)(({ theme }) => ({
@@ -141,7 +141,10 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
       };
 
       // 檢查圖片解析度
-      const isValid = await checkImageResolution(image, { size, rotate });
+      const isValid = await checkImageResolution(image, { 
+        size: size as SizeType, 
+        rotate 
+      });
       
       if (isValid) {
         validImages.push(image);
@@ -152,7 +155,7 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
     }
 
     if (invalidImages.length > 0) {
-      const requirement = getResolutionRequirement(size, rotate);
+      const requirement = getResolutionRequirement(size as SizeType, rotate);
       setResolutionError(
         t('common.error.invalidResolution', {
           files: invalidImages.join(', '),

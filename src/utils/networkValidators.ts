@@ -1,6 +1,9 @@
 // src/utils/networkValidators.ts
+import { ModeType, NetworkConfig } from '../types/common';
+
 // 型別定義
 export type ValidatableField = 'wifi' | 'ssid' | 'password' | 'ip' | 'netmask' | 'gateway' | 'dns' | 'serverURL';
+export type NetworkMode = Extract<ModeType, 'cms' | 'nas'>;
 type TranslationFunction = (key: string, options?: Record<string, unknown>) => string;
 
 // 正則表達式定義
@@ -35,7 +38,7 @@ export function validateField(
   field: ValidatableField,
   value: string,
   config?: Record<string, string>,
-  mode?: 'cms' | 'nas'
+  mode?: NetworkMode
 ): string {
   switch (field) {
     case 'wifi':
@@ -98,19 +101,23 @@ export function validateField(
 // 完整網路設定驗證函數
 export function validateNetworkSettings(
   t: TranslationFunction,
-  mode: 'cms' | 'nas',
-  config: {
-    wifi: string;
-    ssid: string;
-    password: string;
-    ip?: string;
-    netmask?: string;
-    gateway?: string;
-    dns?: string;
-  },
+  mode: NetworkMode,
+  config: NetworkConfig,
   serverURL?: string
 ): { isValid: boolean; errors: Record<string, string> } {
   const errors: Record<string, string> = {};
+
+  // 轉換 config 為 Record<string, string> 格式
+  const configAsRecord: Record<string, string> = {
+    wifi: config.wifi,
+    ssid: config.ssid,
+    password: config.password,
+    ip: config.ip || '',
+    netmask: config.netmask || '',
+    gateway: config.gateway || '',
+    dns: config.dns || '',
+    serverURL: serverURL || ''
+  };
 
   // 基本檢查
   const fields: ValidatableField[] = ['wifi', 'ssid'];
@@ -127,10 +134,10 @@ export function validateNetworkSettings(
   // 在 CMS 和 NAS 模式都檢查 serverURL
   fields.push('serverURL');
 
-  // 執行所有欄位的驗證
-  for (const field of fields) {
-    const value = field === 'serverURL' ? (serverURL || '') : (config[field] || '');
-    const error = validateField(t, field, value, config, mode);
+   // 執行所有欄位的驗證
+   for (const field of fields) {
+    const value = field === 'serverURL' ? (serverURL || '') : (configAsRecord[field] || '');
+    const error = validateField(t, field, value, configAsRecord, mode);
     if (error) {
       errors[field] = error;
     }

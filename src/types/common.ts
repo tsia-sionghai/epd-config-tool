@@ -60,6 +60,7 @@ export interface NetworkConfig {
   gateway: string;
   dns: string;
   serverURL?: string;
+  ServerSyncInterval?: number;  // 添加 ServerSyncInterval 欄位
 }
 
 export interface NetworkSettingsProps {

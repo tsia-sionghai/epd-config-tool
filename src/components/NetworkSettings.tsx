@@ -1,12 +1,12 @@
 // src/components/NetworkSettings.tsx
 import React, { useEffect } from 'react';
 import { Grid, Paper, Typography } from '@mui/material';
-import { NetworkSettingsProps, NetworkConfig } from '../types/common';
+import { NetworkSettingsProps, NetworkConfig, ModeType } from '../types/common';
 import WifiSelector from './WifiSelector';
 import StaticIPFields from './StaticIPFields';
 import FormField from './common/FormField';
 import SelectorField from './common/SelectorField';
-import { validateField, ValidatableField } from '../utils/networkValidators';
+import { validateField, ValidatableField, NetworkMode } from '../utils/networkValidators';
 import { useTranslation } from 'react-i18next';
 
 const NetworkSettings: React.FC<NetworkSettingsProps> = ({
@@ -42,24 +42,30 @@ const NetworkSettings: React.FC<NetworkSettingsProps> = ({
     serverURL: serverURL
   };
 
+  // 新增模式轉換函數
+  const getNetworkMode = (mode: ModeType): NetworkMode | undefined => {
+    return mode === 'auto' ? undefined : mode;
+  };
+
   const handleFieldChange = (field: keyof NetworkConfig, value: string) => {
     onConfigChange({ ...config, [field]: value });
     
     if (isValidatableField(field)) {
       const validationResult = validateField(
         t, 
-        field as ValidatableField, 
+        field, 
         value,
         configAsRecord,
-        mode  // 傳入當前模式供驗證使用
+        getNetworkMode(mode)
       );
       
       if (onErrorChange) {
         onErrorChange(field, validationResult);
       }
 
-      if (validationResult && fieldRefs[field]) {
-        fieldRefs[field].current?.focus();
+      if (validationResult && field in fieldRefs) {
+        const ref = fieldRefs[field as keyof typeof fieldRefs];
+        ref?.current?.focus();
       }
     }
   };
@@ -71,7 +77,7 @@ const NetworkSettings: React.FC<NetworkSettingsProps> = ({
       'serverURL',
       value,
       configAsRecord,
-      mode  // 傳入當前模式以使用對應的驗證規則
+      getNetworkMode(mode)
     );
     
     if (onErrorChange) {

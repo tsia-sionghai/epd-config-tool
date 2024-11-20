@@ -26,7 +26,8 @@ import {
   cleanupSDCard
 } from '../utils/fileSystem';
 import { 
-  generateConfig, 
+  generatePlaybackConfig,  // 更新這裡
+  generateSDCardConfig,    // 更新這裡
   convertToConfigFile 
 } from '../utils/configGenerator';
 import { uploadImageToBin } from '../services/api';
@@ -40,6 +41,7 @@ import ImageSettings from '../components/ImageSettings';
 import SDCardPathSettings from '../components/SDCardPathSettings';
 import ActionButtons from '../components/ActionButtons';
 import { useTranslation } from 'react-i18next';
+import { TOptions, TOptionsBase } from 'i18next/typescript/options';
 
 // Styled Components
 const StyledBackdrop = styled(Backdrop)(({ theme }) => ({
@@ -123,7 +125,7 @@ const getPlatformInfo = () => {
 };
 
 // 定義翻譯選項的介面
-interface TranslationOptions {
+interface TranslationOptions extends TOptionsBase {
   imageNumber?: number;
   totalImages?: number;
   name?: string;
@@ -132,6 +134,15 @@ interface TranslationOptions {
   interpolation?: {
     escapeValue: boolean;
   };
+  size?: number;
+  fields?: string;
+  [key: string]: 
+    | number 
+    | string 
+    | boolean 
+    | object 
+    | undefined 
+    | unknown;  // 加入 unknown 以支援 TOptionsBase 的屬性
 }
 
 // 處理圖片的主要函數
@@ -550,7 +561,7 @@ const EPDConfigurationTool: React.FC = () => {
               imageDir,
               imageConfig.size,
               setProcessingStatus,
-              t
+              (key: string, options?: TranslationOptions) => t(key, options as TOptions)
             );
           } catch (error) {
             if (isStorageError(error as Error)) {
@@ -565,19 +576,30 @@ const EPDConfigurationTool: React.FC = () => {
         // 5. 建立設定檔
         setProcessingStatus(t('common.status.creatingConfig'));
         
-        // 在 generateConfig 呼叫時添加
-        const internalConfig = generateConfig(
-          customer,
-          mode,
-          powerMode,
-          timeZone,
-          imageConfig,
-          mode === 'cms' || mode === 'nas' ? {
-            ...networkConfig,
-            serverURL,
-            ServerSyncInterval: parseInt(serverSyncInterval, 10)
-          } : undefined
-        );
+        // 根據模式使用不同的設定檔生成函數
+        const networkSettings = ['cms', 'nas'].includes(mode) ? {
+          ...networkConfig,
+          serverURL,
+          ServerSyncInterval: parseInt(serverSyncInterval, 10)
+        } : undefined;
+
+        const internalConfig = mode === 'nas'
+          ? generateSDCardConfig(
+              customer,
+              mode,
+              powerMode,
+              timeZone,
+              imageConfig,
+              networkSettings
+            )
+          : generatePlaybackConfig(
+              customer,
+              mode,
+              powerMode,
+              timeZone,
+              imageConfig,
+              networkSettings
+            );
 
         const configFile = convertToConfigFile(internalConfig);
         await createConfigFile(sdCardHandle, configFile);

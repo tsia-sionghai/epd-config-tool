@@ -40,14 +40,41 @@ const processNetworkConfig = (
   return config;
 };
 
-// 生成內部使用的配置
-export const generateConfig = (
+// 生成用於播放的配置（用於 ePoster.zip）
+export const generatePlaybackConfig = (
   customer: string,
   mode: ModeType,
   powerMode: PowerModeType,
   timeZone: TimeZoneType,
   imageConfig: ImageConfig,
-  networkConfig?: NetworkConfig & { ServerSyncInterval?: number }  // 擴展介面以包含 ServerSyncInterval
+  networkConfig?: NetworkConfig
+): SignageConfig => {
+  return {
+    Customer: customer,
+    Mode: mode,
+    PowerMode: powerMode,
+    TimeZone: timeZone,
+    SoftAP: "0",
+    Path: "/sdcard/image/slideshow",
+    Size: imageConfig.size,
+    Rotate: imageConfig.rotate,
+    Interval: imageConfig.interval,
+    WifiSetting: "",  // 固定為空
+    ServerURL: "",    // 固定為空
+    PackageName: "",
+    ActivityName: "",
+    ServerSyncInterval: networkConfig?.ServerSyncInterval || 10  // 保持與實際設定一致
+  };
+};
+
+// 生成用於 SD Card 的配置
+export const generateSDCardConfig = (
+  customer: string,
+  mode: ModeType,
+  powerMode: PowerModeType,
+  timeZone: TimeZoneType,
+  imageConfig: ImageConfig,
+  networkConfig?: NetworkConfig
 ): SignageConfig => {
   // 基本配置
   const baseConfig: SignageConfig = {
@@ -84,5 +111,5 @@ export const convertToConfigFile = (config: SignageConfig): SignageConfigFile =>
   ...config,
   Rotate: config.Rotate.toString(),
   Interval: config.Interval.toString(),
-  ServerSyncInterval: config.ServerSyncInterval.toString()  // 新增轉換
+  ServerSyncInterval: config.ServerSyncInterval.toString()
 });
