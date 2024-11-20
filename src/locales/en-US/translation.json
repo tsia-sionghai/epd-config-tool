@@ -1,61 +1,231 @@
 {
   "common": {
     "title": {
-      "main": "EPD Configuration Tool",
+      "main": "SD Tool",
       "basic": "Basic Settings",
-      "auto": "Operation Settings"
+      "auto": "Standalone Mode",
+      "cms": "CMS Mode",
+      "nas": "NAS Mode",
+      "nasBinary": "Playback Settings"
+    },
+    "note": {
+      "browserSupport": "Supports <1>Chrome</1> and Edge only"
     },
     "label": {
       "customer": "Customer",
       "mode": "Mode",
       "powerMode": "Power Mode",
       "timeZone": "Time Zone",
+      "serverSyncInterval": "Check Update Interval",
       "size": "Size",
       "rotate": "Rotate",
       "interval": "Interval (seconds)",
       "selectImage": "Select Image",
+      "wifiSetting": "WiFi Setting",
+      "ssid": "SSID",
+      "password": "WiFi Password",
+      "ip": "IP Address",
+      "netmask": "Netmask",
+      "gateway": "Gateway",
+      "dns": "DNS",
+      "serverURL": {
+        "cms": "CMS Server URL",
+        "nas": "NAS Download URL"
+      },
       "sdCardPath": "SD Card Path"
     },
     "button": {
+      "downloadChrome": "Get Chrome",
+      "downloadEdge": "Get Edge",
       "selectPath": "Select Path",
-      "generateConfig": "Generate Configuration"
+      "generateConfig": "Generate Config",
+      "downloadBinary": "Download Binary",
+      "cancel": "Cancel"
     },
     "hint": {
-      "intervalMin": "Interval must be at least 180 seconds",
-      "sdCardPathCheck": "Please ensure the selected path is on the SD card"
+      "intervalMin": "Must be at least 180 seconds",
+      "serverSyncIntervalMin": "Enter a number between 5-1440",
+      "sdCardPathCheck": "Ensure selected path is on SD card",
+      "downloadBinaryToNAS": "Upload downloaded binary to your NAS."
     },
     "placeholder": {
-      "enterCustomer": "Please enter name",
-      "dragOrSelect": "Drag and drop images here or",
+      "enterCustomer": "Enter name",
+      "serverSyncInterval": "Enter 5-1440",
+      "ssid": "SSID",
+      "password": "Password",
+      "ip": "IP Address",
+      "netmask": "Netmask",
+      "gateway": "Gateway",
+      "dns": "DNS",
+      "serverURL": {
+        "cms": "https://api.ezread.com.tw/schedule",
+        "nas": "NAS Download URL"
+      },
+      "dragOrSelect": "Drag images here or",
       "selectImage": "Select Images"
+    },
+    "unit": {
+      "minutes": "minutes"
+    },
+    "warning": {
+      "spaceTitle": "Space Required",
+      "spaceRequirement": "This operation needs {{size}} MB of free space",
+      "spaceConfirmation": "Ensure enough SD card space or operation may fail."
+    },
+    "status": {
+      "preparing": "Preparing...",
+      "processing": "Processing...",
+      "checkingSDCard": "Checking SD card...",
+      "creatingFiles": "Creating files...",
+      "creatingDirectory": "Creating directory...",
+      "copyingImages": "Copying image {{imageNumber}}/{{totalImages}}: {{name}}",
+      "uploadingImage": "Uploading {{current}}/{{total}}: {{name}}",
+      "downloadingBin": "Downloading {{imageNumber}}/{{totalImages}}, Bin {{binNumber}}/{{totalBins}}",
+      "downloadingBinFiles": "Downloading files {{current}}/{{total}}",
+      "processingImage": "Processing {{imageNumber}}/{{totalImages}}",
+      "creatingConfig": "Creating config...",
+      "checkingSpace": "Checking space...",
+      "cleaningUp": "Cleaning up...",
+      "estimatingSpace": "Estimating space...",
+      "creatingZip": "Creating ZIP...",
+      "calculatingHash": "Calculating hash..."
+    },
+    "success": {
+      "configGenerated": "Config generated successfully",
+      "downloadSuccess": "Binary downloaded successfully"
+    },
+    "error": {
+      "browserNotSupportedTitle": "Browser Not Supported",
+      "browserNotSupportedDesc": "Please use Chrome or Edge browser:",
+      "browserNotSupported": "Please use Chrome or Edge",
+      "customerRequired": "Customer name required",
+      "noSDCardSelected": "Select SD card first",
+      "sdCardNotEmpty": "SD card not empty. Clear it and try again",
+      "noImagesSelected": "Select at least one image",
+      "invalidResolution": "Invalid resolution (Required: {{requirement}}): {{files}}",
+      "resolutionChangeInvalid": "Can't change {{setting}} to {{value}}, invalid resolution (Required: {{requirement}}): {{files}}",
+      "requiredFields": "Required fields: {{fields}}",
+      "uploadFailed": "Upload failed",
+      "downloadFailed": "Download failed. Try again later",
+      "generateConfigFailed": "Config generation failed",
+      "imageProcessingFailed": "Error processing image {{name}}",
+      "insufficientSpace": "Insufficient space. Operation canceled",
+      "spaceSuggestions": "Tips:\n• Clear SD card space\n• Use larger SD card\n• Reduce image count/resolution",
+      "ssid": {
+        "required": "SSID required",
+        "invalid": "Invalid SSID format",
+        "tooLong": "SSID max length is 32"
+      },
+      "password": {
+        "invalid": "Password must be 8-63 characters"
+      },
+      "ip": {
+        "invalid": "Invalid IP format"
+      },
+      "netmask": {
+        "invalid": "Invalid netmask format"
+      },
+      "gateway": {
+        "invalid": "Invalid gateway format",
+        "subnet": "Gateway must be in same subnet"
+      },
+      "dns": {
+        "invalid": "Invalid DNS format"
+      },
+      "serverURL": {
+        "required": {
+          "cms": "CMS Server URL required",
+          "nas": "NAS URL required"
+        },
+        "invalid": {
+          "cms": "Invalid CMS URL format",
+          "nas": "Invalid NAS URL. Use supported protocol (smb://, nfs://, ftp://, http(s)://)"
+        }
+      },
+      "serverSyncInterval": {
+        "required": "Update interval required",
+        "invalid": "Enter valid number",
+        "tooSmall": "Min interval: {{min}} minutes",
+        "tooLarge": "Max interval: {{max}} minutes"
+      }
     }
   },
   "mode": {
     "auto": {
-      "title": "Local Operation (Offline Mode)",
-      "description": "Display images directly from local storage."
+      "title": "Standalone Mode",
+      "description": "Local image slideshow."
     },
     "cms": {
-      "title": "CMS Control (Online Mode)",
-      "description": "Control and update images through Content Management System (CMS)."
+      "title": "CMS Mode",
+      "description": "Control via CMS."
     },
     "nas": {
-      "title": "NAS (Online Mode)",
-      "description": "Update images through Network Attached Storage."
+      "title": "NAS Mode",
+      "description": "Update via NAS."
     }
   },
   "powerMode": {
     "off": {
       "title": "Off Mode",
-      "description": "Device will power off after screen refresh."
+      "description": "Power off after refresh."
     },
-    "sleep": {
+    "hibernation": {
       "title": "Sleep Mode",
-      "description": "Device will enter sleep mode after screen refresh."
+      "description": "Sleep after refresh."
     },
     "normal": {
       "title": "Normal Mode",
-      "description": "Device will stay awake after screen refresh."
+      "description": "Stay active after refresh."
+    }
+  },
+  "network": {
+    "error": {
+      "wifi": {
+        "required": "Select WiFi mode",
+        "invalid": "Invalid WiFi mode"
+      },
+      "ssid": {
+        "required": "SSID required",
+        "invalid": "Invalid SSID"
+      },
+      "password": {
+        "required": "Password required",
+        "invalid": "Password must be 8-63 chars"
+      },
+      "ip": {
+        "required": "IP required",
+        "invalid": "Invalid IP"
+      },
+      "netmask": {
+        "required": "Netmask required",
+        "invalid": "Invalid netmask"
+      },
+      "gateway": {
+        "required": "Gateway required",
+        "invalid": "Invalid gateway",
+        "subnet": "Gateway must be in subnet"
+      },
+      "dns": {
+        "required": "DNS required",
+        "invalid": "Invalid DNS"
+      },
+      "serverURL": {
+        "required": "Server URL required",
+        "invalid": "Invalid server URL"
+      },
+      "nasURL": {
+        "required": "NAS URL required",
+        "invalid": "Invalid NAS URL",
+        "protocol": "Use supported protocol (smb://, nfs://, ftp://, http://)"
+      }
+    }
+  },
+  "dialog": {
+    "saveLocation": {
+      "title": "Save Location",
+      "description": "Select save location and confirm file overwrite.",
+      "cancelButton": "Cancel",
+      "confirmButton": "Confirm"
     }
   }
 }
