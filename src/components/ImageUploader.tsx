@@ -232,7 +232,7 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
             variant="basic" 
             onClick={handleSelectImage}
             disabled={safeImages.length >= maxImages}
-            sx={{ ml: 1 }}
+            sx={{ ml: 1, minWidth: '100px', width: 'auto', whiteSpace: 'nowrap' }}
           >
             {t('common.placeholder.selectImage')}
           </Button>
