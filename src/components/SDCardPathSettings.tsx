@@ -17,11 +17,8 @@ const StyledTextField = styled(TextField)(({ theme }) => ({
   '& .MuiInputBase-root': {
     backgroundColor: 'transparent',
     padding: '8px 12px',
-    minWidth: '20px',
-    width: 'fit-content',
+    width: 'auto',
     height: '40px',
-    borderRadius: '20px',
-    border: `1px solid ${theme.palette.grey[500]}`, // 使用 darkGray (#A2ABB3)
     '&::before': {
       display: 'none',
     },
@@ -35,7 +32,7 @@ const StyledTextField = styled(TextField)(({ theme }) => ({
       backgroundColor: 'transparent',
     },
     '&.Mui-disabled': {
-      border: `1px solid ${theme.palette.grey[500]}`, // disabled 狀態下的 border 顏色
+      border: `1px dashed ${theme.palette.grey[500]}`, // disabled 狀態下的 border 顏色
     },
   },
   '& .MuiInputBase-input': {
@@ -69,23 +66,19 @@ const SDCardPathSettings: React.FC<SDCardPathSettingsProps> = ({
 
   const handleSelectPath = async () => {
     try {
-      // if ('showDirectoryPicker' in window) {
-        const dirHandle = await window.showDirectoryPicker({
-          mode: 'readwrite',
-        });
+      const dirHandle = await window.showDirectoryPicker({
+        mode: 'readwrite',
+      });
 
-        // 檢查目錄是否為空
-        const isEmpty = await checkSDCardEmpty(dirHandle, true);
-        if (!isEmpty) {
-          onError?.(t('common.error.sdCardNotEmpty'));
-          return;
-        }
+      // 檢查目錄是否為空
+      const isEmpty = await checkSDCardEmpty(dirHandle, true);
+      if (!isEmpty) {
+        onError?.(t('common.error.sdCardNotEmpty'));
+        return;
+      }
 
-        setSdCardPath(dirHandle.name);
-        onDirectorySelect(dirHandle);
-      // } else {
-      //   onError?.(t('common.error.browserNotSupported'));
-      // }
+      setSdCardPath(dirHandle.name);
+      onDirectorySelect(dirHandle);
     } catch (err) {
       console.error('Error selecting directory:', err);
     }
@@ -98,7 +91,7 @@ const SDCardPathSettings: React.FC<SDCardPathSettingsProps> = ({
           <Box sx={{ 
             display: 'inline-flex', 
             alignItems: 'center',
-            gap: 2,
+            gap: 1,
           }}>
             <LabelWrapper>{t('common.label.sdCardPath')}</LabelWrapper>
             <StyledTextField

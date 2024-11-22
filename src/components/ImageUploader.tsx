@@ -14,7 +14,7 @@ import { ImageFile, SizeType } from '../types/common';
 import { getThumbnailDimensions } from '../utils/imageUtils';
 
 const DropzoneArea = styled(Box)(({ theme }) => ({
-  border: `2px dashed ${theme.palette.grey[300]}`,
+  border: `1px dashed ${theme.palette.grey[500]}`,
   borderRadius: theme.shape.borderRadius,
   display: 'flex',
   justifyContent: 'center',
