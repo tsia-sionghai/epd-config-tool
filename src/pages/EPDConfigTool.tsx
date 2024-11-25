@@ -426,7 +426,7 @@ const EPDConfigurationTool: React.FC = () => {
   }, []);
 
   // handleGenerateConfig 函數
-  const handleGenerateConfig = async () => {
+  const handleGenerateConfig = async (isDownloadPlayback: boolean = false) => {
     try {
       // 1. 先進行所有欄位檢查
       // 清除之前的錯誤訊息
@@ -583,7 +583,7 @@ const EPDConfigurationTool: React.FC = () => {
           ServerSyncInterval: parseInt(serverSyncInterval, 10)
         } : undefined;
 
-        const internalConfig = mode === 'nas'
+        const internalConfig = isDownloadPlayback
           ? generateSDCardConfig(
               customer,
               mode,
@@ -628,6 +628,14 @@ const EPDConfigurationTool: React.FC = () => {
     } finally {
       setIsProcessing(false);
     }
+  };
+
+  const handleDownload = () => {
+    handleGenerateConfig(true);  // 下載播放檔案
+  };
+  
+  const handleGenerateSDCard = () => {
+    handleGenerateConfig(false); // 產生設定檔案
   };
 
   return (

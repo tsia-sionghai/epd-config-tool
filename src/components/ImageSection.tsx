@@ -20,6 +20,7 @@ import { ModeType, ImageConfig, ImageFile, PowerModeType, TimeZoneType } from '.
 import FileHandler from './dialogs/FileHandler';
 import { useTranslation } from 'react-i18next';
 import { createEPosterPackage } from '../utils/zipUtils';
+import { generatePlaybackConfig } from '../utils/configGenerator';
 
 // Styled Backdrop - 保持原有樣式
 const StyledBackdrop = styled(Backdrop)(({ theme }) => ({
@@ -82,22 +83,39 @@ const ImageSection: React.FC<ImageSectionProps> = ({
     }
   }, [onConfigChange, config.images.length]);
 
-  const configData = useMemo(() => ({
-    Customer: customer,
-    Mode: mode,
-    PowerMode: powerMode,
-    TimeZone: timeZone,
-    SoftAP: "0",
-    Path: "/sdcard/image/slideshow",
-    Size: config.size,
-    Rotate: config.rotate.toString(),
-    Interval: config.interval.toString(),
-    WifiSetting: "",
-    ServerURL: "",
-    PackageName: "",
-    ActivityName: "",
-    ServerSyncInterval: "10"  // 加入 ServerSyncInterval
-  }), [customer, mode, powerMode, timeZone, config.size, config.rotate, config.interval]);
+  const configData = useMemo(() => {
+    const baseConfig = generatePlaybackConfig(
+      customer,
+      mode,
+      powerMode,
+      timeZone,
+      {
+        size: config.size,
+        rotate: config.rotate,
+        interval: config.interval,
+        images: config.images
+      },
+      undefined  // 播放檔案不需要網路設定
+    );
+
+    // 保持原有的資料結構和格式
+    return {
+      Customer: baseConfig.Customer,
+      Mode: baseConfig.Mode,
+      PowerMode: baseConfig.PowerMode,
+      TimeZone: baseConfig.TimeZone,
+      SoftAP: "0",
+      Path: "/sdcard/image/slideshow",
+      Size: baseConfig.Size,
+      Rotate: baseConfig.Rotate.toString(),
+      Interval: baseConfig.Interval.toString(),
+      WifiSetting: "",
+      ServerURL: "",
+      PackageName: "",
+      ActivityName: "",
+      ServerSyncInterval: baseConfig.ServerSyncInterval.toString()
+    };
+  }, [customer, mode, powerMode, timeZone, config.size, config.rotate, config.interval, config.images]);
 
   const handleDownload = useCallback(async (overwrite = false) => {
     try {
