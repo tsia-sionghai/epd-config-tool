@@ -1,35 +1,53 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import { useEffect } from 'react';
+import { createBrowserRouter, RouterProvider } from 'react-router-dom';
+import { ThemeProvider } from '@mui/material/styles';
+import CssBaseline from '@mui/material/CssBaseline';
+import { useTranslation } from 'react-i18next';
+import theme from './theme';
+import Layout from './components/Layout/Layout';
+import EPDConfigTool from './pages/EPDConfigTool';
+import { detectLanguage } from './utils/languageDetector';
+
+// 路由配置
+const router = createBrowserRouter([
+  {
+    path: '/',
+    element: <Layout />,
+    children: [
+      {
+        index: true,
+        element: <EPDConfigTool />,
+      },
+    ],
+  },
+]);
 
 function App() {
-  const [count, setCount] = useState(0)
+  const { i18n } = useTranslation();
+
+  useEffect(() => {
+    // 監聽 cookie 變化
+    const checkLanguage = () => {
+      const currentLang = detectLanguage();
+      if (currentLang !== i18n.language) {
+        i18n.changeLanguage(currentLang);
+      }
+    };
+
+    // 初始檢查
+    checkLanguage();
+
+    // 定期檢查 cookie 變化
+    const interval = setInterval(checkLanguage, 1000);
+    return () => clearInterval(interval);
+  }, [i18n]);
 
   return (
-    <>
-      <div>
-        <a href="https://vitejs.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+    <ThemeProvider theme={theme}>
+      <CssBaseline />
+      <RouterProvider router={router} />
+    </ThemeProvider>
+  );
 }
 
-export default App
+export default App;
